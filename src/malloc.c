@@ -1,6 +1,9 @@
+#include "malloc.h"
 #include <stdio.h>
 
-void foo(int i)
+void *malloc(size_t size)
 {
-	printf("called malloc with %d\n", i);
+	void *ptr = NULL;
+	printf("mallocing %zu bytes\n", size);
+	return ptr;
 }
