@@ -8,7 +8,7 @@ LIBDIR		:= $(BUILDDIR)/lib
 BINDIR		:= $(BUILDDIR)/bin
 VERBOSE		:= FALSE
 
-SRCS_LIST	:= malloc.c
+SRCS_LIST	:= malloc.c heap.c
 OBJS_LIST	:= $(SRCS_LIST:.c=.o)
 SRCS		:= $(addprefix $(SRCSDIR)/,$(SRCS_LIST))
 OBJS		:= $(addprefix $(OBJSDIR)/,$(OBJS_LIST))
