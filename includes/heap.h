@@ -10,8 +10,8 @@
 #define MMAPPED                     0x02
 //#define ARENA                       0x04
 
-#define TINY_ZONE_SIZE              4096
-#define TINY_ZONE_CHUNK_MAX_SIZE    32
+#define TINY_ZONE_SIZE              4096 //FIXME: this + zone header > page size
+#define TINY_ZONE_CHUNK_MAX_SIZE    32 // FIXME: also have in mind the size of the "size" member
 
 #define SMALL_ZONE_SIZE				13107200
 // All chunks larger than this value are allocated outside the normal heap,
@@ -23,6 +23,10 @@
 
 #define MIN_FREE_CHUNK_SIZE 		ALIGN(sizeof(free_chunk_header_t))
 
+#define ZONE_HEADER_T_SIZE	        ALIGN(sizeof(zone_header_t)) // zone header metadata size
+
+#define CHUNK_SIZE_WITHOUT_FLAGS(size)  (size & ~7u)
+
 typedef struct free_chunk_header_s
 {
     size_t size;
@@ -30,19 +34,22 @@ typedef struct free_chunk_header_s
     struct free_chunk_header_s *prev;
 } free_chunk_header_t;
 
-typedef struct zone_s
+typedef struct zone_header_s
 {
     //size_t				remaining_free_bytes; // to know when the zone is full and we need to allocate a new one
-    struct zone_s		*next;
-    struct zone_s		*prev;
+    struct zone_header_s		*next;
+    struct zone_header_s		*prev;
     //void				*bin; // doubly linked list of chunks
-} zone_t;
+} zone_header_t;
 
 typedef struct heap_s
 {
     void    *tiny_zones_head; // doubly linked list of tiny zones
     void    *small_zones_head;
     void    *large_zones_head; // large chunks are in a zone of their own
+
+    free_chunk_header_t *tiny_bin_head;
+    //free_chunk_header_t *small_bin_head;
 } heap_t;
 
 
