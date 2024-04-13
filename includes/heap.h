@@ -45,11 +45,12 @@ typedef struct zone_header_s
 typedef struct heap_s
 {
     void    *tiny_zones_head; // doubly linked list of tiny zones
-    void    *small_zones_head;
+    void    *small_zones_head; // doubly linked list of small zones
     void    *large_zones_head; // large chunks are in a zone of their own
 
     free_chunk_header_t *tiny_bin_head;
-    //free_chunk_header_t *small_bin_head;
+    // TODO: create multiple bins for small zones?
+    free_chunk_header_t *small_bin_head;
 } heap_t;
 
 

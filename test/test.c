@@ -22,12 +22,14 @@ int main()
 	free(ptr_3);
 	ptr_3 = malloc(2);
 	void *ptr_5 = malloc(12);
+	void *ptr_6 = malloc(33);
 
 	(void)ptr_1;
 	(void)ptr_2;
 	(void)ptr_3;
 	(void)ptr_4;
 	(void)ptr_5;
+	(void)ptr_6;
 
 	show_alloc_mem();
 }

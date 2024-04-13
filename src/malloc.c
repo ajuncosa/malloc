@@ -111,6 +111,20 @@ void show_alloc_mem(void)
 	}
 
 	printf("\nSMALL: %p\n", heap_g.small_zones_head);
+	for (zone_header_t *small_zone = heap_g.small_zones_head; small_zone != NULL; small_zone = small_zone->next)
+	{
+		size_t *chunk_ptr = (size_t *)((uint8_t *)small_zone + ZONE_HEADER_T_SIZE);
+		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+		for (size_t i = 0; i < (TINY_ZONE_SIZE / TINY_ZONE_CHUNK_MAX_SIZE); i++)
+    	{
+			if ((*chunk_ptr & IN_USE) == IN_USE)
+			{
+				printf("  %p - %p: %zu bytes\n", chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
+				total_bytes += chunk_size;
+			}
+        	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
+		}
+	}
 
 	printf("\nLARGE: %p\n", heap_g.large_zones_head);
 	for (zone_header_t *large_zone = heap_g.large_zones_head; large_zone != NULL; large_zone = large_zone->next)
@@ -154,8 +168,7 @@ static void *allocate_small_chunk(size_t chunk_size)
 	(void)chunk_size;
 	/*
 	size_t chunk_size = ALIGN(size + SIZE_T_SIZE);
-	//size_t chunk_size = ALIGN(size + ALIGN(sizeof(inuse_chunk_header_t)));
-	chunk_size = chunk_size < MIN_CHUNK_SIZE ? MIN_CHUNK_SIZE : chunk_size;
+	chunk_size = chunk_size < MIN_FREE_CHUNK_SIZE ? MIN_FREE_CHUNK_SIZE : chunk_size;
 
 	size_t *chunk_header = mmap(NULL, chunk_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	*chunk_header = chunk_size | 1; // allocated bit
@@ -163,14 +176,33 @@ static void *allocate_small_chunk(size_t chunk_size)
 	*/
 
 
-	free_chunk_header_t *new_chunk = heap_g.tiny_bin_head;
+	free_chunk_header_t *new_chunk = heap_g.small_bin_head;
 	// TODO: memset el chunk a 0?
-	heap_g.tiny_bin_head = new_chunk->next;
+	for (free_chunk_header_t *chunk = heap_g.small_bin_head; chunk != NULL; chunk = chunk->next)
+	{
+		if (chunk->size >= chunk_size)
+		{
+			// If the remainder of splitting would be big enough to store
+			// more small chunks, split the chunk:
+			if ((chunk->size - chunk_size) > TINY_ZONE_CHUNK_MAX_SIZE)
+			{
+
+			}
+			new_chunk = chunk;
+			break;
+		}
+	}
+
+	if (heap_g.small_bin_head == new_chunk)
+		heap_g.small_bin_head = new_chunk->next;
 	if (new_chunk->next != NULL)
-		new_chunk->next->prev = NULL;
+		new_chunk->next->prev = new_chunk->prev;
+	if (new_chunk->prev != NULL)
+		new_chunk->prev->next = new_chunk->next;
 	new_chunk->prev = NULL;
 	new_chunk->next = NULL;
 	new_chunk->size |= IN_USE;
+
 	return (uint8_t *)new_chunk + SIZE_T_SIZE;
 }
 
