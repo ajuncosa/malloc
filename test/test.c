@@ -23,6 +23,7 @@ int main()
 	ptr_3 = malloc(2);
 	void *ptr_5 = malloc(12);
 	void *ptr_6 = malloc(33);
+	void *ptr_7 = malloc(131000);
 
 	(void)ptr_1;
 	(void)ptr_2;
@@ -30,6 +31,9 @@ int main()
 	(void)ptr_4;
 	(void)ptr_5;
 	(void)ptr_6;
+	(void)ptr_7;
+
+	printf("aligned 100: %d\n", ALIGN(100));
 
 	show_alloc_mem();
 }
