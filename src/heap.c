@@ -53,9 +53,23 @@ bool init_heap(void)
     initial_small_free_chunk->prev = NULL;
     initial_small_free_chunk->next = NULL;
     heap_g.small_bin_head = initial_small_free_chunk;
+    size_t *footer_chunk_size = (size_t *)((uint8_t *)initial_small_free_chunk + CHUNK_SIZE_WITHOUT_FLAGS(initial_small_free_chunk->size) - SIZE_T_SIZE);
+    *footer_chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(initial_small_free_chunk->size);
 
     /* Initialize large zone: */
 	heap_g.large_zones_head = NULL;
 
 	return true;
+}
+
+void *get_small_zone_beginning(void *chunk_ptr)
+{
+    for (zone_header_t *zone = heap_g.small_zones_head; zone != NULL; zone = zone->next)
+    {
+        if (chunk_ptr > (void *)zone && chunk_ptr < (void *)((uint8_t *)zone + SMALL_ZONE_SIZE + ZONE_HEADER_T_SIZE))
+        {
+            return (uint8_t *)zone + ZONE_HEADER_T_SIZE;
+        }
+    }
+    return NULL;
 }

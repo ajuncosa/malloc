@@ -5,9 +5,8 @@
 #include <unistd.h>
 #include "alignment.h"
 
-//#define PREVIOUS_IN_USE             0x01
-#define IN_USE                      0x01
-#define MMAPPED                     0x02
+#define IN_USE                      0x01 // whether the current chunk is in use
+#define PREVIOUS_FREE               0x02 // whether the previous chunk is available for coalescing
 //#define ARENA                       0x04
 
 #define TINY_ZONE_SIZE              4096 //FIXME: this + zone header > page size
@@ -39,7 +38,6 @@ typedef struct zone_header_s
     //size_t				remaining_free_bytes; // to know when the zone is full and we need to allocate a new one
     struct zone_header_s		*next;
     struct zone_header_s		*prev;
-    //void				*bin; // doubly linked list of chunks
 } zone_header_t;
 
 typedef struct heap_s
@@ -49,12 +47,13 @@ typedef struct heap_s
     void    *large_zones_head; // large chunks are in a zone of their own
 
     free_chunk_header_t *tiny_bin_head;
-    // TODO: create multiple bins for small zones?
     free_chunk_header_t *small_bin_head;
+    //free_chunk_header_t *small_cache_head;
 } heap_t;
 
 
 bool init_heap(void);
+void *get_small_zone_beginning(void *chunk_ptr);
 
 // global
 extern heap_t heap_g;
