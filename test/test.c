@@ -74,13 +74,22 @@ int main()
 	//(void)ptr_8;
 	//(void)ptr_9;
 
-	for (size_t i = 0; i < 100 ; i++)
+	for (size_t i = 0; i < 128 ; i++)
 	{
-		char *ptr_1 = malloc(SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE);
+		char *ptr_1 = malloc(TINY_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE);
+		if (ptr_1 == NULL)
+			exit(1);
+		
+		ptr_1[TINY_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE -1] = 'a';
 		(void)ptr_1;
 	}
 
+		char *ptr_1 = malloc(1);
+		if (ptr_1 == NULL)
+			exit(1);
+		(void)ptr_1;
 	show_alloc_mem();
+
 	/*
 	int i;
 	char *addr;

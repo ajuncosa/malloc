@@ -53,7 +53,17 @@ typedef struct heap_s
 
 
 bool init_heap(void);
+zone_header_t *allocate_new_tiny_zone();
+zone_header_t *allocate_new_small_zone();
 void *get_small_zone_beginning(void *chunk_ptr);
+
+void *allocate_large_chunk(size_t chunk_size);
+void *allocate_small_chunk(size_t chunk_size);
+void *allocate_tiny_chunk(void);
+void free_large_chunk(size_t *ptr_to_chunk);
+void free_small_chunk(size_t *ptr_to_chunk);
+void free_tiny_chunk(size_t *ptr_to_chunk);
+
 
 // global
 extern heap_t heap_g;
