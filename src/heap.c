@@ -86,8 +86,7 @@ zone_header_t *allocate_new_small_zone()
     initial_small_free_chunk->prev = NULL;
     initial_small_free_chunk->next = NULL;
     heap_g.small_bin_head = initial_small_free_chunk;
-    size_t *footer_chunk_size = (size_t *)((uint8_t *)initial_small_free_chunk + CHUNK_SIZE_WITHOUT_FLAGS(initial_small_free_chunk->size) - SIZE_T_SIZE);
-    *footer_chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(initial_small_free_chunk->size);
+    set_chunk_footer_size(initial_small_free_chunk);
 
     return new_small_zone;
 }
@@ -145,6 +144,7 @@ void *allocate_small_chunk(size_t chunk_size)
 		}
         next_unsorted_chunk = unsorted_chunk->next;
         printf("Not a match. Checking if it is possible to coalesce...\n");
+
         // Deferred coalescing
         unsorted_chunk = coalesce(unsorted_chunk);
         if (CHUNK_SIZE_WITHOUT_FLAGS(unsorted_chunk->size) == chunk_size)
@@ -159,12 +159,7 @@ void *allocate_small_chunk(size_t chunk_size)
     if (new_chunk)
     {
         printf("Removing chunk from unsorted list...\n");
-        if (heap_g.unsorted_small_list_head == new_chunk)
-			heap_g.unsorted_small_list_head = new_chunk->next;
-		if (new_chunk->next != NULL)
-			new_chunk->next->prev = new_chunk->prev;
-		if (new_chunk->prev != NULL)
-			new_chunk->prev->next = new_chunk->next;
+        remove_chunk_from_list(&heap_g.unsorted_small_list_head, new_chunk);
     }
     else
     {
@@ -193,30 +188,16 @@ void *allocate_small_chunk(size_t chunk_size)
         {
             printf("Splitting chunk.\n");
             free_chunk_header_t *remaining_chunk = (free_chunk_header_t *)((uint8_t *)new_chunk + chunk_size);
-            if (heap_g.small_bin_head == new_chunk)
-                heap_g.small_bin_head = remaining_chunk;
-            if (new_chunk->next != NULL)
-                new_chunk->next->prev = remaining_chunk;
-            if (new_chunk->prev != NULL)
-                new_chunk->prev->next = remaining_chunk;
+            replace_chunk_in_list(&heap_g.small_bin_head, new_chunk, remaining_chunk);
             remaining_chunk->size = CHUNK_SIZE_WITHOUT_FLAGS(new_chunk->size) - chunk_size;
-            remaining_chunk->prev = new_chunk->prev;
-            remaining_chunk->next = new_chunk->next;
             new_chunk->size = chunk_size;
 
-            size_t *remaining_chunk_footer_size = (size_t *)((uint8_t *)remaining_chunk + remaining_chunk->size - SIZE_T_SIZE);
-            *remaining_chunk_footer_size = remaining_chunk->size;
+            set_chunk_footer_size(remaining_chunk);
             printf("Remaining free chunk size: %zu.\n", remaining_chunk->size);
         }
         else
         {
-            if (heap_g.small_bin_head == new_chunk)
-                heap_g.small_bin_head = new_chunk->next;
-            if (new_chunk->next != NULL)
-                new_chunk->next->prev = new_chunk->prev;
-            if (new_chunk->prev != NULL)
-                new_chunk->prev->next = new_chunk->next;
-
+            remove_chunk_from_list(&heap_g.small_bin_head, new_chunk);
             void *new_chunk_zone = get_small_zone_beginning(new_chunk);
             size_t *next_chunk = (size_t *)((uint8_t *)new_chunk + CHUNK_SIZE_WITHOUT_FLAGS(new_chunk->size));
             if (next_chunk != (new_chunk_zone + SMALL_ZONE_SIZE))
@@ -261,12 +242,7 @@ void free_large_chunk(size_t *ptr_to_chunk)
 {
 	zone_header_t *ptr_to_zone = (zone_header_t *)((uint8_t *)ptr_to_chunk - ZONE_HEADER_T_SIZE);
 	//printf("ptr to zone: %p, next: %p, prev: %p\n", ptr_to_zone, ptr_to_zone->next, ptr_to_zone->prev);
-	if (ptr_to_zone == heap_g.large_zones_head)
-		heap_g.large_zones_head = ptr_to_zone->next;
-	if (ptr_to_zone->prev != NULL)
-		ptr_to_zone->prev->next = ptr_to_zone->next;
-	if (ptr_to_zone->next != NULL)
-		ptr_to_zone->next->prev = ptr_to_zone->prev;
+    remove_zone_from_list((zone_header_t **)&heap_g.large_zones_head, ptr_to_zone);
 	if (munmap(ptr_to_zone, ALIGN(*ptr_to_chunk) + ZONE_HEADER_T_SIZE) == -1)
 	{
 		printf("Error: munmap failed with errno: %d\n", errno);
@@ -289,44 +265,29 @@ void free_small_chunk(size_t *ptr_to_chunk)
 		printf("NOT setting next chunk's PREVIOUS_FREE bc next_chunk is end of zone\n");
 	}
 
-    if (heap_g.unsorted_small_list_head != NULL)
-	    heap_g.unsorted_small_list_head->prev = freed_chunk;
-	freed_chunk->next = heap_g.unsorted_small_list_head;
-	freed_chunk->prev = NULL;
+    add_chunk_to_list_front(&heap_g.unsorted_small_list_head, freed_chunk);
 	freed_chunk->size &= ~IN_USE;
-	heap_g.unsorted_small_list_head = freed_chunk;
-	size_t *footer_size = (size_t *)((uint8_t *)freed_chunk + CHUNK_SIZE_WITHOUT_FLAGS(freed_chunk->size) - SIZE_T_SIZE);
-	*footer_size = CHUNK_SIZE_WITHOUT_FLAGS(freed_chunk->size);
+    set_chunk_footer_size(freed_chunk);
 }
 
 void free_tiny_chunk(size_t *ptr_to_chunk)
 {
 	free_chunk_header_t *freed_chunk = (free_chunk_header_t *)ptr_to_chunk;
-	heap_g.tiny_bin_head->prev = freed_chunk;
-	freed_chunk->next = heap_g.tiny_bin_head;
-	freed_chunk->prev = NULL;
+    add_chunk_to_list_front(&heap_g.tiny_bin_head, freed_chunk);
 	freed_chunk->size &= ~IN_USE;
-	heap_g.tiny_bin_head = freed_chunk;
 }
 
 void move_chunk_from_unsorted_to_small_bin(free_chunk_header_t *chunk)
 {
     printf("Moving chunk from unsorted to small bin\n");
+    remove_chunk_from_list(&heap_g.unsorted_small_list_head, chunk);
+
     free_chunk_header_t *next_largest_chunk_in_small_bin = heap_g.small_bin_head;
     while (next_largest_chunk_in_small_bin != NULL && next_largest_chunk_in_small_bin->size < chunk->size)
     {
         //printf("a\n");
         next_largest_chunk_in_small_bin = next_largest_chunk_in_small_bin->next;
-
     }
-
-    // remove chunk from the unsorted list
-    if (heap_g.unsorted_small_list_head == chunk)
-        heap_g.unsorted_small_list_head = chunk->next;
-    if (chunk->next != NULL)
-        chunk->next->prev = chunk->prev;
-    if (chunk->prev != NULL)
-        chunk->prev->next = chunk->next;
 
     // add chunk to the small bin, ordered by size
     chunk->next = next_largest_chunk_in_small_bin;
@@ -365,8 +326,7 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
             free_chunk_header_t *prev_free_chunk = (free_chunk_header_t *)prev_chunk_ptr;
             // FIXME: will these never have previous_free? do I need to do a loop?
             prev_free_chunk->size = prev_size + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
-            size_t *footer_size = (size_t *)((uint8_t *)prev_free_chunk + CHUNK_SIZE_WITHOUT_FLAGS(prev_free_chunk->size) - SIZE_T_SIZE);
-            *footer_size = CHUNK_SIZE_WITHOUT_FLAGS(prev_free_chunk->size);
+            set_chunk_footer_size(prev_free_chunk);
             coalesced_chunk = prev_free_chunk;
         }
         else
@@ -380,8 +340,7 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
         printf("Colaescing with next chunk of size: %zu.\n", CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr));
         // FIXME: will these never have previous_free? do I need to do a loop?
         chunk->size = CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) + CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr);
-        size_t *footer_size = (size_t *)((uint8_t *)chunk + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) - SIZE_T_SIZE);
-        *footer_size = CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
+        set_chunk_footer_size(chunk);
         coalesced_chunk = chunk;
     }
     else if (prev_is_free_to_coalesce && next_is_free_to_coalesce)
@@ -394,8 +353,7 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
             free_chunk_header_t *prev_free_chunk = (free_chunk_header_t *)prev_chunk_ptr;
             // FIXME: will these never have previous_free? do I need to do a loop?
             prev_free_chunk->size = prev_size + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) + CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr);
-            size_t *footer_size = (size_t *)((uint8_t *)prev_free_chunk + CHUNK_SIZE_WITHOUT_FLAGS(prev_free_chunk->size) - SIZE_T_SIZE);
-            *footer_size = CHUNK_SIZE_WITHOUT_FLAGS(prev_free_chunk->size);
+            set_chunk_footer_size(prev_free_chunk);
             coalesced_chunk = prev_free_chunk;
         }
         else
@@ -407,3 +365,52 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
     printf("coalesced chunk size: %zu\n", CHUNK_SIZE_WITHOUT_FLAGS(coalesced_chunk->size));
     return coalesced_chunk;
 }
+
+void remove_zone_from_list(zone_header_t **list_head, zone_header_t *zone)
+{
+	if (zone == *list_head)
+		*list_head = zone->next;
+	if (zone->prev != NULL)
+		zone->prev->next = zone->next;
+	if (zone->next != NULL)
+		zone->next->prev = zone->prev;
+}
+
+void add_chunk_to_list_front(free_chunk_header_t **list_head, free_chunk_header_t *chunk)
+{
+    if (*list_head != NULL)
+	    (*list_head)->prev = chunk;
+	chunk->next = *list_head;
+	chunk->prev = NULL;
+	*list_head = chunk;
+}
+
+void remove_chunk_from_list(free_chunk_header_t **list_head, free_chunk_header_t *chunk)
+{
+    if (*list_head == chunk)
+        *list_head = chunk->next;
+    if (chunk->prev != NULL)
+        chunk->prev->next = chunk->next;
+    if (chunk->next != NULL)
+        chunk->next->prev = chunk->prev;
+}
+
+void replace_chunk_in_list(free_chunk_header_t **list_head, free_chunk_header_t *chunk_to_remove, free_chunk_header_t *new_chunk)
+{
+    if (*list_head == chunk_to_remove)
+        *list_head = new_chunk;
+    if (chunk_to_remove->next != NULL)
+        chunk_to_remove->next->prev = new_chunk;
+    if (chunk_to_remove->prev != NULL)
+        chunk_to_remove->prev->next = new_chunk;
+
+    new_chunk->prev = chunk_to_remove->prev;
+    new_chunk->next = chunk_to_remove->next;
+}
+
+void set_chunk_footer_size(free_chunk_header_t *chunk)
+{
+    size_t *footer_size = (size_t *)((uint8_t *)chunk + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) - SIZE_T_SIZE);
+	*footer_size = CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
+}
+
