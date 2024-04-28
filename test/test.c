@@ -74,20 +74,28 @@ int main()
 	//(void)ptr_8;
 	//(void)ptr_9;
 
-	for (size_t i = 0; i < 128 ; i++)
+	char *ptr = NULL;
+	for (size_t i = 0; i < 99 ; i++)
 	{
-		char *ptr_1 = malloc(TINY_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE);
-		if (ptr_1 == NULL)
+		ptr = malloc(SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE);
+		if (ptr == NULL)
 			exit(1);
 		
-		ptr_1[TINY_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE -1] = 'a';
-		(void)ptr_1;
+		//ptr_1[SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE -1] = 'a';
 	}
+	char *ptr2 = malloc(SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE);
+	if (ptr2 == NULL)
+		exit(1);
 
-		char *ptr_1 = malloc(1);
-		if (ptr_1 == NULL)
-			exit(1);
-		(void)ptr_1;
+	free(ptr);
+	free(ptr2);
+
+	ptr = malloc(55);
+	if (ptr == NULL)
+		exit(1);
+
+	(void)ptr;
+	(void)ptr2;
 	show_alloc_mem();
 
 	/*

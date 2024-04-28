@@ -35,7 +35,6 @@ typedef struct free_chunk_header_s
 
 typedef struct zone_header_s
 {
-    //size_t				remaining_free_bytes; // to know when the zone is full and we need to allocate a new one
     struct zone_header_s		*next;
     struct zone_header_s		*prev;
 } zone_header_t;
@@ -48,7 +47,7 @@ typedef struct heap_s
 
     free_chunk_header_t *tiny_bin_head;
     free_chunk_header_t *small_bin_head;
-    //free_chunk_header_t *small_cache_head;
+    free_chunk_header_t *unsorted_small_list_head;
 } heap_t;
 
 
@@ -64,6 +63,8 @@ void free_large_chunk(size_t *ptr_to_chunk);
 void free_small_chunk(size_t *ptr_to_chunk);
 void free_tiny_chunk(size_t *ptr_to_chunk);
 
+void move_chunk_from_unsorted_to_small_bin(free_chunk_header_t *chunk);
+free_chunk_header_t *coalesce(free_chunk_header_t *chunk);
 
 // global
 extern heap_t heap_g;
