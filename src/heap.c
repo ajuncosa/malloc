@@ -140,6 +140,8 @@ void *allocate_small_chunk(size_t chunk_size)
 		{
             printf("Found a match in the unsorted list!\n");
 			new_chunk = unsorted_chunk;
+            printf("Removing chunk from unsorted list...\n");
+            remove_chunk_from_list(&heap_g.unsorted_small_list_head, new_chunk);
 			break;
 		}
         next_unsorted_chunk = unsorted_chunk->next;
@@ -147,21 +149,19 @@ void *allocate_small_chunk(size_t chunk_size)
 
         // Deferred coalescing
         unsorted_chunk = coalesce(unsorted_chunk);
+        
         if (CHUNK_SIZE_WITHOUT_FLAGS(unsorted_chunk->size) == chunk_size)
         {
             printf("The coalesced chunk is a match!\n");
             new_chunk = unsorted_chunk;
+            printf("Removing chunk from unsorted list...\n");
+            remove_chunk_from_list(&heap_g.unsorted_small_list_head, new_chunk);
             break;
         }
         move_chunk_from_unsorted_to_small_bin(unsorted_chunk);
         unsorted_chunk = next_unsorted_chunk;
 	}
-    if (new_chunk)
-    {
-        printf("Removing chunk from unsorted list...\n");
-        remove_chunk_from_list(&heap_g.unsorted_small_list_head, new_chunk);
-    }
-    else
+    if (new_chunk == NULL)
     {
         printf("Could not find a match in the unsorted list; checking the small bin\n");
 	    for (free_chunk_header_t *chunk = heap_g.small_bin_head; chunk != NULL; chunk = chunk->next)
@@ -285,7 +285,6 @@ void move_chunk_from_unsorted_to_small_bin(free_chunk_header_t *chunk)
     free_chunk_header_t *next_largest_chunk_in_small_bin = heap_g.small_bin_head;
     while (next_largest_chunk_in_small_bin != NULL && next_largest_chunk_in_small_bin->size < chunk->size)
     {
-        //printf("a\n");
         next_largest_chunk_in_small_bin = next_largest_chunk_in_small_bin->next;
     }
 
@@ -328,6 +327,11 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
             prev_free_chunk->size = prev_size + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
             set_chunk_footer_size(prev_free_chunk);
             coalesced_chunk = prev_free_chunk;
+
+            remove_chunk_from_list(&heap_g.small_bin_head, coalesced_chunk);
+            remove_chunk_from_list(&heap_g.unsorted_small_list_head, coalesced_chunk);
+
+            replace_chunk_in_list(&heap_g.unsorted_small_list_head, chunk, coalesced_chunk);
         }
         else
         {
@@ -337,11 +341,15 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
     }
     else if (!prev_is_free_to_coalesce && next_is_free_to_coalesce)
     {
+        free_chunk_header_t *next_free_chunk = (free_chunk_header_t *)next_chunk_ptr;
         printf("Colaescing with next chunk of size: %zu.\n", CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr));
         // FIXME: will these never have previous_free? do I need to do a loop?
         chunk->size = CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) + CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr);
         set_chunk_footer_size(chunk);
         coalesced_chunk = chunk;
+
+        remove_chunk_from_list(&heap_g.small_bin_head, next_free_chunk);
+        remove_chunk_from_list(&heap_g.unsorted_small_list_head, next_free_chunk);
     }
     else if (prev_is_free_to_coalesce && next_is_free_to_coalesce)
     {
@@ -351,10 +359,19 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
         {
             printf("Colaescing with prev and next chunk of size: %zu, %zu.\n", *(size_t *)((uint8_t *)chunk - SIZE_T_SIZE), CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr));
             free_chunk_header_t *prev_free_chunk = (free_chunk_header_t *)prev_chunk_ptr;
+            free_chunk_header_t *next_free_chunk = (free_chunk_header_t *)next_chunk_ptr;
             // FIXME: will these never have previous_free? do I need to do a loop?
             prev_free_chunk->size = prev_size + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) + CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr);
             set_chunk_footer_size(prev_free_chunk);
             coalesced_chunk = prev_free_chunk;
+
+            remove_chunk_from_list(&heap_g.small_bin_head, coalesced_chunk);
+            remove_chunk_from_list(&heap_g.unsorted_small_list_head, coalesced_chunk);
+
+            remove_chunk_from_list(&heap_g.small_bin_head, next_free_chunk);
+            remove_chunk_from_list(&heap_g.unsorted_small_list_head, next_free_chunk);
+
+            replace_chunk_in_list(&heap_g.unsorted_small_list_head, chunk, coalesced_chunk);
         }
         else
         {
@@ -374,6 +391,9 @@ void remove_zone_from_list(zone_header_t **list_head, zone_header_t *zone)
 		zone->prev->next = zone->next;
 	if (zone->next != NULL)
 		zone->next->prev = zone->prev;
+
+    zone->prev = NULL;
+    zone->next = NULL;
 }
 
 void add_chunk_to_list_front(free_chunk_header_t **list_head, free_chunk_header_t *chunk)
@@ -393,6 +413,9 @@ void remove_chunk_from_list(free_chunk_header_t **list_head, free_chunk_header_t
         chunk->prev->next = chunk->next;
     if (chunk->next != NULL)
         chunk->next->prev = chunk->prev;
+
+    chunk->prev = NULL;
+    chunk->next = NULL;
 }
 
 void replace_chunk_in_list(free_chunk_header_t **list_head, free_chunk_header_t *chunk_to_remove, free_chunk_header_t *new_chunk)
@@ -406,6 +429,9 @@ void replace_chunk_in_list(free_chunk_header_t **list_head, free_chunk_header_t 
 
     new_chunk->prev = chunk_to_remove->prev;
     new_chunk->next = chunk_to_remove->next;
+
+    chunk_to_remove->prev = NULL;
+    chunk_to_remove->next = NULL;
 }
 
 void set_chunk_footer_size(free_chunk_header_t *chunk)
