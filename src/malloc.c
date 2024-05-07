@@ -16,7 +16,7 @@ void *malloc(size_t size)
 	}
 	void *ptr = NULL;
 
-	//printf("mallocing %zu bytes\n", size);
+	printf("mallocing %zu bytes\n", size);
 	size_t chunk_size = ALIGN(size + SIZE_T_SIZE);
 	//printf("chunk size: %zu bytes\n", chunk_size);
 
@@ -42,7 +42,7 @@ void *malloc(size_t size)
 			return NULL;
 	}
 
-	//printf("data address: %p\n", ptr);
+	printf("data address: %p\n", ptr);
 	
 	return ptr;
 }
@@ -60,18 +60,18 @@ void free(void *ptr)
 	}
 	if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > SMALL_ZONE_CHUNK_MAX_SIZE)
 	{
-		printf("Freeing a LARGE chunk (and zone).\n");
+		//printf("Freeing a LARGE chunk (and zone).\n");
 		free_large_chunk(ptr_to_chunk);
 	}
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == TINY_ZONE_CHUNK_MAX_SIZE)
 	{
-		printf("Freeing a TINY chunk.\n");
+		//printf("Freeing a TINY chunk.\n");
 		free_tiny_chunk(ptr_to_chunk);
 	}
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > TINY_ZONE_CHUNK_MAX_SIZE
 		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= SMALL_ZONE_CHUNK_MAX_SIZE)
 	{
-		printf("Freeing a SMALL chunk.\n");
+		//printf("Freeing a SMALL chunk.\n");
 		free_small_chunk(ptr_to_chunk);
 	}
 	else

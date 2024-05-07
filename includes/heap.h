@@ -39,11 +39,12 @@ typedef struct zone_header_s
     struct zone_header_s		*prev;
 } zone_header_t;
 
+// TODO: how to know when to unmap tiny zone if empty?
 typedef struct heap_s
 {
-    void    *tiny_zones_head; // doubly linked list of tiny zones
-    void    *small_zones_head; // doubly linked list of small zones
-    void    *large_zones_head; // large chunks are in a zone of their own
+    zone_header_t       *tiny_zones_head; // doubly linked list of tiny zones
+    zone_header_t       *small_zones_head; // doubly linked list of small zones
+    zone_header_t       *large_zones_head; // large chunks are in a zone of their own
 
     free_chunk_header_t *tiny_bin_head;
     free_chunk_header_t *small_bin_head;
@@ -54,7 +55,8 @@ typedef struct heap_s
 bool init_heap(void);
 zone_header_t *allocate_new_tiny_zone();
 zone_header_t *allocate_new_small_zone();
-void *get_small_zone_beginning(void *chunk_ptr);
+void free_small_zone(zone_header_t *ptr_to_zone);
+zone_header_t *get_small_zone(void *chunk_ptr);
 
 void *allocate_large_chunk(size_t chunk_size);
 void *allocate_small_chunk(size_t chunk_size);

@@ -77,6 +77,8 @@ int main()
 		
 		//ptr_1[SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE -1] = 'a';
 	}
+*/
+	/*
 	char *ptr2 = malloc(SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE);
 	if (ptr2 == NULL)
 		exit(1);
@@ -88,10 +90,22 @@ int main()
 	if (ptr == NULL)
 		exit(1);
 
-	(void)ptr;
 	(void)ptr2;
+	*/
+	/*
+	for (size_t i = 0; i < 99 ; i++)
+	{
+		free(ptr);
+		ptr -= SMALL_ZONE_CHUNK_MAX_SIZE;
+	}
+	// FIXME: esto deberia estar liberando la zona antes de alocar, pero
+	// solo recorre un par de elementos en la unsorted (probablemente estoy
+	// seteando el next a null al mover las cosas del unosrted)
+	ptr = malloc(100);
+	(void)ptr;
 	show_alloc_mem();
-*/
+	*/
+/*
 	char *ptr_1 = malloc(100);
 	char *ptr_2 = malloc(200);
 	void *ptr_3 = malloc(100);
@@ -114,6 +128,25 @@ int main()
 	ptr_3 = malloc(400);
 	free(ptr_6);
 	ptr_6 = malloc(100);
+*/
+	char *ptr_1 = malloc(100);
+	char *ptr_2 = malloc(100);
+	void *ptr_3 = malloc(100);
+	void *ptr_4 = malloc(100);
+	void *ptr_5 = malloc(100);
+	void *ptr_6 = malloc(100);
+	char *ptr_7 = malloc(100);
+	void *ptr_8 = malloc(100);
+	void *ptr_9 = malloc(100);
+	free(ptr_1);
+	free(ptr_2);
+	free(ptr_3);
+	free(ptr_4);
+	free(ptr_5);
+	free(ptr_6);
+	free(ptr_7);
+	free(ptr_8);
+	free(ptr_9);
 
 	(void)ptr_1;
 	(void)ptr_2;
@@ -124,9 +157,11 @@ int main()
 	(void)ptr_7;
 	(void)ptr_8;
 	(void)ptr_9;
-	(void)ptr_10;
+	//(void)ptr_10;
+	ptr_1 = malloc(200);
 
 	show_alloc_mem();
+
 
 	/*
 	int i;
