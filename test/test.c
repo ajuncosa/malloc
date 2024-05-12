@@ -9,8 +9,8 @@ int main()
 	struct rlimit rlimit;
 	getrlimit(RLIMIT_DATA, &rlimit);
 	printf("Hello. Pagesize: %d, soft data limit: %llu, hard: %llu\n", getpagesize(), rlimit.rlim_cur, rlimit.rlim_max);
-	printf("free chunk header size: %zu bytes\n", sizeof(free_chunk_header_t));
-	printf("zone header size: %zu bytes\n", sizeof(zone_header_t));
+	//printf("free chunk header size: %zu bytes\n", sizeof(free_chunk_header_t));
+	//printf("zone header size: %zu bytes\n", sizeof(zone_header_t));
 /*
 
 	char *ptr_1 = malloc(131073);
@@ -129,6 +129,7 @@ int main()
 	free(ptr_6);
 	ptr_6 = malloc(100);
 */
+/*
 	char *ptr_1 = malloc(100);
 	char *ptr_2 = malloc(100);
 	void *ptr_3 = malloc(100);
@@ -161,19 +162,18 @@ int main()
 	ptr_1 = malloc(200);
 
 	show_alloc_mem();
+*/
 
-
-	/*
 	int i;
 	char *addr;
 
 	i = 0;
 	while (i < 1024)
 	{
-		addr = (char*)malloc(32);
-		addr[0] = 42;
-		i++;
+	addr = (char*)malloc(1024);
+	addr[0] = 42;
+	i++;
+	free(addr);
+
 	}
-	return (0);
-	*/
 }

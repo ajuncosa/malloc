@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <sys/mman.h>
+#include <string.h> // FIXME: remove
 
 #include "malloc.h"
 #include "heap.h"
 
 void *malloc(size_t size)
 {
+	if (size == 0)
+		return NULL;
+
 	static bool heap_initialized = false;
 	if (heap_initialized == false)
 	{
@@ -14,69 +18,107 @@ void *malloc(size_t size)
 
 		heap_initialized = true;
 	}
-	void *ptr = NULL;
 
-	printf("mallocing %zu bytes\n", size);
+	//printf("mallocing %zu bytes\n", size);
 	size_t chunk_size = ALIGN(size + SIZE_T_SIZE);
 	//printf("chunk size: %zu bytes\n", chunk_size);
 
 	/* LARGE ALLOCATION */
 	if (chunk_size > SMALL_ZONE_CHUNK_MAX_SIZE)
-	{
-		//printf("LARGE ALLOCATION\n");
-		if ((ptr = allocate_large_chunk(chunk_size)) == NULL)
-			return NULL;
-	}
+		return allocate_large_chunk(chunk_size);
 	/* TINY ALLOCATION */
 	else if (chunk_size <= TINY_ZONE_CHUNK_MAX_SIZE)
-	{
-		//printf("TINY ALLOCATION\n");
-		if ((ptr = allocate_tiny_chunk()) == NULL)
-			return NULL;
-	}
+		return allocate_tiny_chunk();
 	/* SMALL ALLOCATION */
 	else
-	{
-		//printf("SMALL ALLOCATION\n");
-		if ((ptr = allocate_small_chunk(chunk_size)) == NULL)
-			return NULL;
-	}
+		return allocate_small_chunk(chunk_size);
 
-	printf("data address: %p\n", ptr);
-	
-	return ptr;
+	//printf("data address: %p\n", ptr);
 }
-
-// arena, heap, bin (small = all the same size; large = range of sizes), free chunk
-
 
 void free(void *ptr)
 {
+	if (ptr == NULL)
+		return;
+
 	size_t *ptr_to_chunk = (size_t *)((uint8_t *)ptr - SIZE_T_SIZE);
 	if ((*ptr_to_chunk & IN_USE) == 0)
 	{
 		printf("Error: the pointer you are trying to free is not allocated.\n");
 		exit(1);
 	}
+
+	/* LARGE FREE */
 	if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > SMALL_ZONE_CHUNK_MAX_SIZE)
-	{
-		//printf("Freeing a LARGE chunk (and zone).\n");
 		free_large_chunk(ptr_to_chunk);
-	}
+	/* TINY FREE */
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == TINY_ZONE_CHUNK_MAX_SIZE)
-	{
-		//printf("Freeing a TINY chunk.\n");
 		free_tiny_chunk(ptr_to_chunk);
-	}
+	/* SMALL FREE */
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > TINY_ZONE_CHUNK_MAX_SIZE
 		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= SMALL_ZONE_CHUNK_MAX_SIZE)
-	{
-		//printf("Freeing a SMALL chunk.\n");
 		free_small_chunk(ptr_to_chunk);
-	}
 	else
 	{
 		printf("Error: something does not match when attempting to free the memory. Memory might be corrupt or you might be trying to free an invalid pointer.\n");
+		exit(1);
+	}
+}
+
+void *realloc(void *ptr, size_t size)
+{
+	if (ptr == NULL)
+		return malloc(size);
+
+	if (size == 0)
+		return NULL;
+
+	size_t *ptr_to_chunk = (size_t *)((uint8_t *)ptr - SIZE_T_SIZE);
+	if ((*ptr_to_chunk & IN_USE) == 0)
+	{
+		printf("Error: the pointer you are trying to realloc is not allocated.\n");
+		exit(1);
+	}
+
+	size_t realloc_chunk_size = ALIGN(size + SIZE_T_SIZE);
+	printf("realloc chunk size: %zu bytes\n", realloc_chunk_size);
+
+	/* LARGE REALLOC */
+	if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > SMALL_ZONE_CHUNK_MAX_SIZE)
+	{
+		printf("Reallocing a LARGE chunk.\n");
+		void *new_ptr = NULL;
+		new_ptr = malloc(size);
+		size_t copy_size = size < *ptr_to_chunk ? size : *ptr_to_chunk;
+		// FIXME: change this for the libft version:
+		memcpy(new_ptr, ptr, copy_size);
+		free_large_chunk(ptr);
+		return new_ptr;
+	}
+	/* TINY REALLOC */
+	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == TINY_ZONE_CHUNK_MAX_SIZE)
+	{
+		if (realloc_chunk_size <= TINY_ZONE_CHUNK_MAX_SIZE)
+			return ptr;
+
+		void *new_ptr = NULL;
+		new_ptr = malloc(size);
+		size_t copy_size = size < *ptr_to_chunk ? size : *ptr_to_chunk;
+		// FIXME: change this for the libft version:
+		memcpy(new_ptr, ptr, copy_size);
+		free_tiny_chunk(ptr);
+		return new_ptr;
+	}
+	/* SMALL REALLOC */
+	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > TINY_ZONE_CHUNK_MAX_SIZE
+		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= SMALL_ZONE_CHUNK_MAX_SIZE)
+	{
+		void *new_ptr = NULL;
+		return new_ptr;
+	}
+	else
+	{
+		printf("Error: something does not match when attempting to realloc the memory. Memory might be corrupt or you might be trying to realloc an invalid pointer.\n");
 		exit(1);
 	}
 }

@@ -9,8 +9,8 @@
 #define PREVIOUS_FREE               0x02 // whether the previous chunk is available for coalescing
 //#define ARENA                       0x04
 
-#define TINY_ZONE_SIZE              4096 //FIXME: this + zone header > page size
-#define TINY_ZONE_CHUNK_MAX_SIZE    32 // FIXME: also have in mind the size of the "size" member
+#define TINY_ZONE_SIZE              16384 //FIXME: this + zone header > page size
+#define TINY_ZONE_CHUNK_MAX_SIZE    128 // FIXME: also have in mind the size of the "size" member
 
 #define SMALL_ZONE_SIZE				13107200
 // All chunks larger than this value are allocated outside the normal heap,
@@ -64,6 +64,9 @@ void *allocate_tiny_chunk(void);
 void free_large_chunk(size_t *ptr_to_chunk);
 void free_small_chunk(size_t *ptr_to_chunk);
 void free_tiny_chunk(size_t *ptr_to_chunk);
+//void *realloc_large_chunk(size_t *ptr_to_chunk, size_t chunk_size);
+//void *realloc_small_chunk(size_t *ptr_to_chunk, size_t chunk_size);
+//void *realloc_tiny_chunk(size_t *ptr_to_chunk, size_t chunk_size);
 
 void move_chunk_from_unsorted_to_small_bin(free_chunk_header_t *chunk);
 free_chunk_header_t *coalesce(free_chunk_header_t *chunk);
