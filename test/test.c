@@ -176,4 +176,8 @@ int main()
 	free(addr);
 
 	}
+	addr = (char*)malloc(1024);
+	show_alloc_mem();
+	addr = realloc(addr, SMALL_ZONE_CHUNK_MAX_SIZE+1);
+	show_alloc_mem();
 }

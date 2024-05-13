@@ -182,7 +182,8 @@ void *allocate_small_chunk(size_t chunk_size)
         }
         else
         {
-            move_chunk_from_unsorted_to_small_bin(unsorted_chunk);
+            remove_chunk_from_list(&heap_g.unsorted_small_list_head, unsorted_chunk);
+            add_chunk_to_small_bin(unsorted_chunk);
         }
         //printf("STATE OF THE SMALL LIST1:\n");
         //for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
@@ -217,17 +218,9 @@ void *allocate_small_chunk(size_t chunk_size)
 
         // If the remainder of splitting would be big enough to store
         // more small chunks, split the chunk:
-        if ((CHUNK_SIZE_WITHOUT_FLAGS(new_chunk->size) - chunk_size) > TINY_ZONE_CHUNK_MAX_SIZE)
-        {
-            //printf("Splitting chunk.\n");
-            free_chunk_header_t *remaining_chunk = (free_chunk_header_t *)((uint8_t *)new_chunk + chunk_size);
+        free_chunk_header_t *remaining_chunk = try_split_chunk((size_t *)new_chunk, chunk_size);
+        if (remaining_chunk != NULL)
             replace_chunk_in_list(&heap_g.small_bin_head, new_chunk, remaining_chunk);
-            remaining_chunk->size = CHUNK_SIZE_WITHOUT_FLAGS(new_chunk->size) - chunk_size;
-            new_chunk->size = chunk_size;
-
-            set_chunk_footer_size(remaining_chunk);
-            //printf("Remaining free chunk size: %zu.\n", remaining_chunk->size);
-        }
         else
         {
             remove_chunk_from_list(&heap_g.small_bin_head, new_chunk);
@@ -310,11 +303,8 @@ void free_tiny_chunk(size_t *ptr_to_chunk)
 	freed_chunk->size &= ~IN_USE;
 }
 
-void move_chunk_from_unsorted_to_small_bin(free_chunk_header_t *chunk)
+void add_chunk_to_small_bin(free_chunk_header_t *chunk)
 {
-    //printf("Moving chunk from unsorted to small bin\n");
-    remove_chunk_from_list(&heap_g.unsorted_small_list_head, chunk);
-
     free_chunk_header_t *next_largest_chunk_in_small_bin = heap_g.small_bin_head;
     while (next_largest_chunk_in_small_bin != NULL && next_largest_chunk_in_small_bin->size < chunk->size)
     {
@@ -414,6 +404,24 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
     }
     printf("coalesced chunk size: %zu\n", CHUNK_SIZE_WITHOUT_FLAGS(coalesced_chunk->size));
     return coalesced_chunk;
+}
+
+free_chunk_header_t *try_split_chunk(size_t *chunk_ptr, size_t required_size)
+{
+    if ((CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - required_size) <= TINY_ZONE_CHUNK_MAX_SIZE)
+        return NULL;
+
+    //printf("Splitting chunk.\n");
+
+    // If the remainder of splitting would be big enough to store
+    // more small chunks, split the chunk:
+    free_chunk_header_t *remaining_chunk = (free_chunk_header_t *)((uint8_t *)chunk_ptr + required_size);
+    remaining_chunk->size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - required_size;
+    *chunk_ptr = required_size;
+    set_chunk_footer_size(remaining_chunk);
+
+    //printf("Remaining free chunk size: %zu.\n", remaining_chunk->size);
+    return remaining_chunk;
 }
 
 void remove_zone_from_list(zone_header_t **list_head, zone_header_t *zone)

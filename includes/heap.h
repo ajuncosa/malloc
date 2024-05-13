@@ -68,12 +68,13 @@ void free_tiny_chunk(size_t *ptr_to_chunk);
 //void *realloc_small_chunk(size_t *ptr_to_chunk, size_t chunk_size);
 //void *realloc_tiny_chunk(size_t *ptr_to_chunk, size_t chunk_size);
 
-void move_chunk_from_unsorted_to_small_bin(free_chunk_header_t *chunk);
 free_chunk_header_t *coalesce(free_chunk_header_t *chunk);
+free_chunk_header_t *try_split_chunk(size_t *chunk_ptr, size_t required_size);
 
 //utils
 void remove_zone_from_list(zone_header_t **list_head, zone_header_t *zone);
 void add_chunk_to_list_front(free_chunk_header_t **list_head, free_chunk_header_t *chunk);
+void add_chunk_to_small_bin(free_chunk_header_t *chunk);
 void remove_chunk_from_list(free_chunk_header_t **list_head, free_chunk_header_t *chunk);
 void replace_chunk_in_list(free_chunk_header_t **list_head, free_chunk_header_t *chunk_to_remove, free_chunk_header_t *new_chunk);
 void set_chunk_footer_size(free_chunk_header_t *chunk);
