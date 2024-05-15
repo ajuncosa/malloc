@@ -13,7 +13,8 @@ OBJS_LIST	:= $(SRCS_LIST:.c=.o)
 SRCS		:= $(addprefix $(SRCSDIR)/,$(SRCS_LIST))
 OBJS		:= $(addprefix $(OBJSDIR)/,$(OBJS_LIST))
 TEST_SRCS	:= $(TESTDIR)/test.c
-#LIBFT		:= libft/libft.a
+LIBFTDIR	:= ${SRCSDIR}/libft
+LIBFT		:= $(LIBDIR)/libft.a
 
 ifeq ($(HOSTTYPE),)
 	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
@@ -25,10 +26,8 @@ NAME		:= $(LIBDIR)/lib$(LIBRARY_NAME).so
 CC			:= gcc
 RM			:= rm -rf
 COMMON		= -Wall -Werror -Wextra
-CFLAGS		?= -fpic -I $(INCLUDESDIR) $(COMMON)
-#CFLAGS		?= -fpic -I includes/ -I libft/ $(COMMON)
-LDFLAGS		?= $(COMMON)
-#LDFLAGS		?= -L libft/ -lft $(COMMON)
+CFLAGS		?= -fpic -I $(INCLUDESDIR) -I $(LIBFTDIR) $(COMMON)
+LDFLAGS		?= -L $(LIBDIR) -lft $(COMMON)
 SANITIZE	= -g3 -fsanitize=address
 
 ifeq ($(VERBOSE),TRUE)
@@ -37,8 +36,7 @@ else
 HIDE = @
 endif
 
-#$(NAME):	$(OBJS) $(LIBFT)
-$(NAME):	$(OBJS)
+$(NAME):	$(OBJS) $(LIBFT)
 			@mkdir -p $(LIBDIR)
 			@echo Linking $@
 			$(HIDE)$(CC) $(LDFLAGS) -shared $^ -o $@
@@ -50,25 +48,23 @@ $(OBJSDIR)/%.o: $(SRCSDIR)/%.c
 
 all:		$(NAME)
 
-#$(LIBFT):
-#			$(MAKE) -C libft/
+$(LIBFT):
+			$(HIDE)$(MAKE) -C $(LIBFTDIR)
 
 test:		all
 			@mkdir -p $(BINDIR)
 			@echo Building $@
-			$(HIDE)$(CC) $(CFLAGS) $(TEST_SRCS) $(LDFLAGS) -L $(LIBDIR) -Wl,-rpath,$(LIBDIR) -l$(LIBRARY_NAME) -o $(BINDIR)/$@
+			$(HIDE)$(CC) $(CFLAGS) $(TEST_SRCS) $(LDFLAGS) -Wl,-rpath,$(LIBDIR) -l$(LIBRARY_NAME) -o $(BINDIR)/$@
 
 debug:		COMMON += $(SANITIZE)
 debug:		re
 
 clean:
 			$(HIDE)$(RM) $(OBJSDIR)
-#			$(HIDE)$(MAKE) clean -C libft/
 			@echo cleaning done!
 
 fclean:		clean
 			$(HIDE)$(RM) $(BUILDDIR)/*
-#			$(HIDE)$(MAKE) fclean -C libft/
 			@echo fcleaning done!
 
 re:			fclean all

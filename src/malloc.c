@@ -8,15 +8,6 @@ void *malloc(size_t size)
 	if (size == 0)
 		return NULL;
 
-	static bool heap_initialized = false;
-	if (heap_initialized == false)
-	{
-		if (init_heap() == false)
-			return NULL;
-
-		heap_initialized = true;
-	}
-
 	size_t chunk_size = ALIGN(size + SIZE_T_SIZE);
 	//printf("chunk size: %zu bytes\n", chunk_size);
 

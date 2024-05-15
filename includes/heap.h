@@ -48,11 +48,10 @@ typedef struct heap_s
 
     free_chunk_header_t *tiny_bin_head;
     free_chunk_header_t *small_bin_head;
-    free_chunk_header_t *unsorted_small_list_head;
+    free_chunk_header_t *small_unsorted_list_head;
 } heap_t;
 
 
-bool init_heap(void);
 zone_header_t *allocate_new_tiny_zone();
 zone_header_t *allocate_new_small_zone();
 void free_small_zone(zone_header_t *ptr_to_zone);

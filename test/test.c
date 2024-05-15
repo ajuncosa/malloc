@@ -74,8 +74,6 @@ int main()
 	(void)ptr_7;
 	(void)ptr_8;
 	(void)ptr_9;
-*/
-/*
 	char *ptr = NULL;
 	for (size_t i = 0; i < 99 ; i++)
 	{
@@ -85,35 +83,29 @@ int main()
 		
 		//ptr_1[SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE -1] = 'a';
 	}
-*/
-	/*
 	char *ptr2 = malloc(SMALL_ZONE_CHUNK_MAX_SIZE - SIZE_T_SIZE);
 	if (ptr2 == NULL)
 		exit(1);
 
-	free(ptr);
+	//free(ptr);
 	free(ptr2);
 
-	ptr = malloc(55);
-	if (ptr == NULL)
-		exit(1);
+	//ptr = malloc(55);
+	//if (ptr == NULL)
+	//	exit(1);
 
 	(void)ptr2;
-	*/
-	/*
 	for (size_t i = 0; i < 99 ; i++)
 	{
 		free(ptr);
 		ptr -= SMALL_ZONE_CHUNK_MAX_SIZE;
 	}
-	// FIXME: esto deberia estar liberando la zona antes de alocar, pero
-	// solo recorre un par de elementos en la unsorted (probablemente estoy
-	// seteando el next a null al mover las cosas del unosrted)
+	show_alloc_mem();
+*/
+/*
 	ptr = malloc(100);
 	(void)ptr;
 	show_alloc_mem();
-	*/
-/*
 	char *ptr_1 = malloc(100);
 	char *ptr_2 = malloc(200);
 	void *ptr_3 = malloc(100);
@@ -171,7 +163,6 @@ int main()
 
 	show_alloc_mem();
 */
-/*
 	int i;
 	char *addr;
 
@@ -184,6 +175,8 @@ int main()
 	free(addr);
 
 	}
+	show_alloc_mem();
+/*
 	addr = (char*)malloc(1024);
 	show_alloc_mem();
 	addr = realloc(addr, SMALL_ZONE_CHUNK_MAX_SIZE+1);
@@ -210,7 +203,6 @@ int main()
 	free((void *)addr + 5);
 	if (realloc((void *)addr + 5, 10) == NULL)
 	print("Bonjours\n");
-*/
 
 	char *addr1;
 	addr1 = malloc(100);
@@ -221,4 +213,5 @@ int main()
 	addr1 = malloc(1024 * 1024 * 128);
 	show_alloc_mem();
 	(void)addr1;
+*/
 }

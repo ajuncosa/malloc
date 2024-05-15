@@ -2,29 +2,17 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "heap.h"
+#include "libft.h"
 
-#include <string.h> // FIXME: remove
 #include <stdio.h> // FIXME: remove
 
 // global
-heap_t heap_g;
-
-bool init_heap(void)
-{
-    /* Initialize tiny zone: */
-    heap_g.tiny_zones_head = NULL;
-    heap_g.tiny_bin_head = NULL;
-
-    /* Initialize small zone: */
-    heap_g.small_zones_head = NULL;
-    heap_g.small_bin_head = NULL;
-    heap_g.unsorted_small_list_head = NULL;
-
-    /* Initialize large zone: */
-	heap_g.large_zones_head = NULL;
-
-	return true;
-}
+heap_t heap_g = { .tiny_zones_head = NULL,
+                  .tiny_bin_head = NULL,
+                  .small_zones_head = NULL,
+                  .small_bin_head = NULL,
+                  .small_unsorted_list_head = NULL,
+                  .large_zones_head = NULL };
 
 zone_header_t *allocate_new_tiny_zone()
 {
@@ -138,10 +126,10 @@ void *allocate_small_chunk(size_t chunk_size)
     //    printf("  size: %zu, ptr: %p\n", it->size, it);
 
     //printf("STATE OF THE UNSORTED LIST0:\n");
-    //for (free_chunk_header_t *it = heap_g.unsorted_small_list_head; it != NULL; it = it->next)
+    //for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
     //    printf("  size: %zu, ptr: %p\n", it->size, it);
 
-    free_chunk_header_t *unsorted_chunk = heap_g.unsorted_small_list_head;
+    free_chunk_header_t *unsorted_chunk = heap_g.small_unsorted_list_head;
     free_chunk_header_t *next_unsorted_chunk = NULL;
 	while (unsorted_chunk != NULL)
 	{
@@ -150,7 +138,7 @@ void *allocate_small_chunk(size_t chunk_size)
             //printf("Found a match in the unsorted list!\n");
 			new_chunk = unsorted_chunk;
             //printf("Removing chunk from unsorted list...\n");
-            remove_chunk_from_list(&heap_g.unsorted_small_list_head, new_chunk);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, new_chunk);
 			break;
 		}
         //printf("Not a match. Checking if it is possible to coalesce...\n");
@@ -165,7 +153,7 @@ void *allocate_small_chunk(size_t chunk_size)
             //printf("The coalesced chunk is a match!\n");
             new_chunk = unsorted_chunk;
             //printf("Removing chunk from unsorted list...\n");
-            remove_chunk_from_list(&heap_g.unsorted_small_list_head, new_chunk);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, new_chunk);
             break;
         }
         // If the zone is empty and there are smaller chunks available, free the zone
@@ -176,12 +164,12 @@ void *allocate_small_chunk(size_t chunk_size)
         {
             printf("Zone is empty, freeing...\n");
             zone_header_t *zone = get_small_zone(unsorted_chunk);
-            remove_chunk_from_list(&heap_g.unsorted_small_list_head, unsorted_chunk);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, unsorted_chunk);
             free_small_zone(zone);
         }
         else
         {
-            remove_chunk_from_list(&heap_g.unsorted_small_list_head, unsorted_chunk);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, unsorted_chunk);
             add_chunk_to_small_bin(unsorted_chunk);
         }
         //printf("STATE OF THE SMALL LIST1:\n");
@@ -189,7 +177,7 @@ void *allocate_small_chunk(size_t chunk_size)
         //    printf("  size: %zu, ptr: %p\n", it->size, it);
 //
         //printf("STATE OF THE UNSORTED LIST1:\n");
-        //for (free_chunk_header_t *it = heap_g.unsorted_small_list_head; it != NULL; it = it->next)
+        //for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
         //    printf("  size: %zu, ptr: %p\n", it->size, it);
             
         unsorted_chunk = next_unsorted_chunk;
@@ -290,7 +278,7 @@ void free_small_chunk(size_t *ptr_to_chunk)
 		//printf("NOT setting next chunk's PREVIOUS_FREE bc next_chunk is end of zone\n");
 	}
 
-    add_chunk_to_list_front(&heap_g.unsorted_small_list_head, freed_chunk);
+    add_chunk_to_list_front(&heap_g.small_unsorted_list_head, freed_chunk);
 	freed_chunk->size &= ~IN_USE;
     set_chunk_footer_size(freed_chunk);
 }
@@ -310,8 +298,7 @@ void *realloc_large_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
     if ((new_ptr = malloc(new_alloc_size)) == NULL)
         return NULL;
 
-    // FIXME: change this for the libft version:
-    memcpy(new_ptr, ptr_to_data, copy_size);
+    ft_memcpy(new_ptr, ptr_to_data, copy_size);
     free_large_chunk(ptr_to_chunk);
 
     return new_ptr;
@@ -329,8 +316,7 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
         if ((new_ptr = malloc(new_alloc_size)) == NULL)
             return NULL;
 
-        // FIXME: change this for the libft version:
-        memcpy(new_ptr, ptr_to_data, copy_size);
+        ft_memcpy(new_ptr, ptr_to_data, copy_size);
         free_small_chunk(ptr_to_chunk);
     }
     // The allocation is being reduced and the chunk resulting from the realloc will be "small"
@@ -358,8 +344,7 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
             if ((new_ptr = malloc(new_alloc_size)) == NULL)
                 return NULL;
 
-            // FIXME: change this for the libft version:
-            memcpy(new_ptr, ptr_to_data, copy_size);
+            ft_memcpy(new_ptr, ptr_to_data, copy_size);
             free_small_chunk(ptr_to_chunk);
         }
     }
@@ -377,8 +362,7 @@ void *realloc_tiny_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_all
     if ((new_ptr = malloc(new_alloc_size)) == NULL)
         return NULL;
 
-    // FIXME: change this for the libft version:
-    memcpy(new_ptr, ptr_to_data, copy_size);
+    ft_memcpy(new_ptr, ptr_to_data, copy_size);
     free_tiny_chunk(ptr_to_chunk);
 
     return new_ptr;
@@ -433,9 +417,9 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
             coalesced_chunk = prev_free_chunk;
 
             remove_chunk_from_list(&heap_g.small_bin_head, coalesced_chunk);
-            remove_chunk_from_list(&heap_g.unsorted_small_list_head, coalesced_chunk);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, coalesced_chunk);
 
-            replace_chunk_in_list(&heap_g.unsorted_small_list_head, chunk, coalesced_chunk);
+            replace_chunk_in_list(&heap_g.small_unsorted_list_head, chunk, coalesced_chunk);
         }
         else
         {
@@ -453,7 +437,7 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
         coalesced_chunk = chunk;
 
         remove_chunk_from_list(&heap_g.small_bin_head, next_free_chunk);
-        remove_chunk_from_list(&heap_g.unsorted_small_list_head, next_free_chunk);
+        remove_chunk_from_list(&heap_g.small_unsorted_list_head, next_free_chunk);
     }
     else if (prev_is_free_to_coalesce && next_is_free_to_coalesce)
     {
@@ -470,12 +454,12 @@ free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
             coalesced_chunk = prev_free_chunk;
 
             remove_chunk_from_list(&heap_g.small_bin_head, coalesced_chunk);
-            remove_chunk_from_list(&heap_g.unsorted_small_list_head, coalesced_chunk);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, coalesced_chunk);
 
             remove_chunk_from_list(&heap_g.small_bin_head, next_free_chunk);
-            remove_chunk_from_list(&heap_g.unsorted_small_list_head, next_free_chunk);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, next_free_chunk);
 
-            replace_chunk_in_list(&heap_g.unsorted_small_list_head, chunk, coalesced_chunk);
+            replace_chunk_in_list(&heap_g.small_unsorted_list_head, chunk, coalesced_chunk);
         }
         else
         {
