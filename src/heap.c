@@ -3,7 +3,8 @@
 #include <errno.h>
 #include "heap.h"
 
-#include <stdio.h>
+#include <string.h> // FIXME: remove
+#include <stdio.h> // FIXME: remove
 
 // global
 heap_t heap_g;
@@ -301,6 +302,84 @@ void free_tiny_chunk(size_t *ptr_to_chunk)
 	free_chunk_header_t *freed_chunk = (free_chunk_header_t *)ptr_to_chunk;
     add_chunk_to_list_front(&heap_g.tiny_bin_head, freed_chunk);
 	freed_chunk->size &= ~IN_USE;
+}
+
+void *realloc_large_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size)
+{
+	void *new_ptr = NULL;
+	size_t copy_size = new_alloc_size < CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) ? new_alloc_size : CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk);
+
+    if ((new_ptr = malloc(new_alloc_size)) == NULL)
+        return NULL;
+
+    // FIXME: change this for the libft version:
+    memcpy(new_ptr, ptr_to_data, copy_size);
+    free_large_chunk(ptr_to_chunk);
+
+    return new_ptr;
+}
+
+void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size)
+{
+	void *new_ptr = NULL;
+	size_t copy_size = new_alloc_size < CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) ? new_alloc_size : CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk);
+	
+    if (new_chunk_size <= TINY_ZONE_CHUNK_MAX_SIZE
+        || new_chunk_size > SMALL_ZONE_CHUNK_MAX_SIZE)
+    {
+        if ((new_ptr = malloc(new_alloc_size)) == NULL)
+            return NULL;
+
+        // FIXME: change this for the libft version:
+        memcpy(new_ptr, ptr_to_data, copy_size);
+        free_small_chunk(ptr_to_chunk);
+    }
+    else if (new_chunk_size <= CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk))
+    {
+        // If the remainder of splitting would be big enough to store
+        // more small chunks, split the chunk:
+        free_chunk_header_t *remaining_chunk = try_split_chunk(ptr_to_chunk, new_chunk_size);
+        if (remaining_chunk != NULL)
+        {
+            add_chunk_to_small_bin(remaining_chunk);
+            *ptr_to_chunk |= IN_USE;
+        }
+        return ptr_to_data;
+    }
+    else
+    {
+        // TODO:
+        //free_chunk_header_t *coalesced = coalesce(ptr_to_chunk);
+        free_chunk_header_t *coalesced = (free_chunk_header_t*)ptr_to_chunk;
+        if (coalesced->size < new_chunk_size)
+        {
+            if ((new_ptr = malloc(new_alloc_size)) == NULL)
+                return NULL;
+
+            // FIXME: change this for the libft version:
+            memcpy(new_ptr, ptr_to_data, copy_size);
+            free_small_chunk(ptr_to_chunk);
+        }
+    }
+    return new_ptr;
+}
+
+void *realloc_tiny_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size)
+{
+	void *new_ptr = NULL;
+	size_t copy_size = new_alloc_size < CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) ? new_alloc_size : CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk);
+
+    if (new_chunk_size <= TINY_ZONE_CHUNK_MAX_SIZE)
+        return ptr_to_data;
+
+    if ((new_ptr = malloc(new_alloc_size)) == NULL)
+        return NULL;
+
+    // FIXME: change this for the libft version:
+    memcpy(new_ptr, ptr_to_data, copy_size);
+    free_tiny_chunk(ptr_to_chunk);
+
+    return new_ptr;
 }
 
 void add_chunk_to_small_bin(free_chunk_header_t *chunk)

@@ -64,9 +64,9 @@ void *allocate_tiny_chunk(void);
 void free_large_chunk(size_t *ptr_to_chunk);
 void free_small_chunk(size_t *ptr_to_chunk);
 void free_tiny_chunk(size_t *ptr_to_chunk);
-//void *realloc_large_chunk(size_t *ptr_to_chunk, size_t chunk_size);
-//void *realloc_small_chunk(size_t *ptr_to_chunk, size_t chunk_size);
-//void *realloc_tiny_chunk(size_t *ptr_to_chunk, size_t chunk_size);
+void *realloc_large_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size);
+void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size);
+void *realloc_tiny_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size);
 
 free_chunk_header_t *coalesce(free_chunk_header_t *chunk);
 free_chunk_header_t *try_split_chunk(size_t *chunk_ptr, size_t required_size);
