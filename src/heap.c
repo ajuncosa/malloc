@@ -13,13 +13,11 @@ bool init_heap(void)
 {
     /* Initialize tiny zone: */
     heap_g.tiny_zones_head = NULL;
-    if (allocate_new_tiny_zone() == NULL)
-        return false;
+    heap_g.tiny_bin_head = NULL;
 
     /* Initialize small zone: */
     heap_g.small_zones_head = NULL;
-    if (allocate_new_small_zone() == NULL)
-        return false;
+    heap_g.small_bin_head = NULL;
     heap_g.unsorted_small_list_head = NULL;
 
     /* Initialize large zone: */
@@ -324,6 +322,7 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
 	void *new_ptr = NULL;
 	size_t copy_size = new_alloc_size < CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) ? new_alloc_size : CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk);
 	
+    // The chunk resulting from the realloc will be "tiny" or "large"
     if (new_chunk_size <= TINY_ZONE_CHUNK_MAX_SIZE
         || new_chunk_size > SMALL_ZONE_CHUNK_MAX_SIZE)
     {
@@ -334,6 +333,7 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
         memcpy(new_ptr, ptr_to_data, copy_size);
         free_small_chunk(ptr_to_chunk);
     }
+    // The allocation is being reduced and the chunk resulting from the realloc will be "small"
     else if (new_chunk_size <= CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk))
     {
         // If the remainder of splitting would be big enough to store
@@ -346,11 +346,13 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
         }
         return ptr_to_data;
     }
+    // The allocation is growing and the chunk resulting from the realloc will be "small"
     else
     {
         // TODO:
         //free_chunk_header_t *coalesced = coalesce(ptr_to_chunk);
         free_chunk_header_t *coalesced = (free_chunk_header_t*)ptr_to_chunk;
+        // If the coalesced chunk is still too small, do a malloc-copy-free:
         if (coalesced->size < new_chunk_size)
         {
             if ((new_ptr = malloc(new_alloc_size)) == NULL)

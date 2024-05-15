@@ -17,7 +17,6 @@ void *malloc(size_t size)
 		heap_initialized = true;
 	}
 
-	//printf("mallocing %zu bytes\n", size);
 	size_t chunk_size = ALIGN(size + SIZE_T_SIZE);
 	//printf("chunk size: %zu bytes\n", chunk_size);
 
@@ -53,8 +52,6 @@ void free(void *ptr)
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > TINY_ZONE_CHUNK_MAX_SIZE
 		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= SMALL_ZONE_CHUNK_MAX_SIZE)
 		free_small_chunk(ptr_to_chunk);
-	else
-		return;
 }
 
 void *realloc(void *ptr, size_t size)
@@ -82,8 +79,8 @@ void *realloc(void *ptr, size_t size)
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > TINY_ZONE_CHUNK_MAX_SIZE
 		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= SMALL_ZONE_CHUNK_MAX_SIZE)
 		return realloc_small_chunk(ptr, ptr_to_chunk, size, new_chunk_size);
-	else
-		return NULL;
+	
+	return NULL;
 }
 
 // TODO: print size allocated by the user instead of chunk size

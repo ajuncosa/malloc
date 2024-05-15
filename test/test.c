@@ -189,7 +189,6 @@ int main()
 	addr = realloc(addr, SMALL_ZONE_CHUNK_MAX_SIZE+1);
 	show_alloc_mem();
 
-*/
 	char *addr1;
 	char *addr2;
 	char *addr3;
@@ -204,7 +203,6 @@ int main()
 
 	(void)addr2;
 
-/*
 	char *addr;
 
 	addr = malloc(16);
@@ -212,8 +210,10 @@ int main()
 	free((void *)addr + 5);
 	if (realloc((void *)addr + 5, 10) == NULL)
 	print("Bonjours\n");
+*/
 
 	char *addr1;
+	addr1 = malloc(100);
 	addr1 = malloc(1024);
 	addr1 = malloc(1024 * 32);
 	addr1 = malloc(1024 * 1024);
@@ -221,5 +221,4 @@ int main()
 	addr1 = malloc(1024 * 1024 * 128);
 	show_alloc_mem();
 	(void)addr1;
-*/
 }
