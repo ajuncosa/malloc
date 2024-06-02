@@ -8,14 +8,22 @@ void *malloc(size_t size)
 	if (size == 0)
 		return NULL;
 
+	static bool heap_initialized = false;
+	if (heap_initialized == false)
+	{
+		if (init_heap() == false)
+			return NULL;
+		heap_initialized = true;
+	}
+
 	size_t chunk_size = ALIGN(size + SIZE_T_SIZE);
-	//printf("chunk size: %zu bytes\n", chunk_size);
+	printf("chunk size: %zu bytes\n", chunk_size);
 
 	/* LARGE ALLOCATION */
-	if (chunk_size > SMALL_ZONE_CHUNK_MAX_SIZE)
+	if (chunk_size > heap_g.small_zone_chunk_max_size)
 		return allocate_large_chunk(chunk_size);
 	/* TINY ALLOCATION */
-	else if (chunk_size <= TINY_ZONE_CHUNK_MAX_SIZE)
+	else if (chunk_size <= heap_g.tiny_zone_chunk_max_size)
 		return allocate_tiny_chunk();
 	/* SMALL ALLOCATION */
 	else
@@ -34,14 +42,14 @@ void free(void *ptr)
 		return;
 
 	/* LARGE FREE */
-	if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > SMALL_ZONE_CHUNK_MAX_SIZE)
+	if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > heap_g.small_zone_chunk_max_size)
 		free_large_chunk(ptr_to_chunk);
 	/* TINY FREE */
-	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == TINY_ZONE_CHUNK_MAX_SIZE)
+	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == heap_g.tiny_zone_chunk_max_size)
 		free_tiny_chunk(ptr_to_chunk);
 	/* SMALL FREE */
-	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > TINY_ZONE_CHUNK_MAX_SIZE
-		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= SMALL_ZONE_CHUNK_MAX_SIZE)
+	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > heap_g.tiny_zone_chunk_max_size
+		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= heap_g.small_zone_chunk_max_size)
 		free_small_chunk(ptr_to_chunk);
 }
 
@@ -61,14 +69,14 @@ void *realloc(void *ptr, size_t size)
 		return ptr;
 
 	/* LARGE REALLOC */
-	if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > SMALL_ZONE_CHUNK_MAX_SIZE)
+	if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > heap_g.small_zone_chunk_max_size)
 		return realloc_large_chunk(ptr, ptr_to_chunk, size);
 	/* TINY REALLOC */
-	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == TINY_ZONE_CHUNK_MAX_SIZE)
+	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == heap_g.tiny_zone_chunk_max_size)
 		return realloc_tiny_chunk(ptr, ptr_to_chunk, size, new_chunk_size);
 	/* SMALL REALLOC */
-	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > TINY_ZONE_CHUNK_MAX_SIZE
-		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= SMALL_ZONE_CHUNK_MAX_SIZE)
+	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > heap_g.tiny_zone_chunk_max_size
+		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= heap_g.small_zone_chunk_max_size)
 		return realloc_small_chunk(ptr, ptr_to_chunk, size, new_chunk_size);
 	
 	return NULL;
@@ -86,7 +94,7 @@ void show_alloc_mem(void)
 	{
 		size_t *chunk_ptr = (size_t *)((uint8_t *)tiny_zone + ZONE_HEADER_T_SIZE);
 		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
-		for (size_t i = 0; i < (TINY_ZONE_SIZE / TINY_ZONE_CHUNK_MAX_SIZE); i++)
+		for (size_t i = 0; i < ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size); i++)
     	{
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
@@ -102,7 +110,7 @@ void show_alloc_mem(void)
 	{
 		size_t *chunk_ptr = (size_t *)((uint8_t *)small_zone + ZONE_HEADER_T_SIZE);
 		size_t chunk_size;
-		for (size_t i = 0; i < SMALL_ZONE_SIZE; i += chunk_size)
+		for (size_t i = 0; i < (heap_g.small_zone_size - ZONE_HEADER_T_SIZE); i += chunk_size)
     	{
 			chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
 			if ((*chunk_ptr & IN_USE) == IN_USE)
