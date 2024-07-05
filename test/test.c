@@ -2,15 +2,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/resource.h>
-#include "malloc.h"
-#include "heap.h"
+#include "tests.h"
 
 #define M (1024 * 1024)
-
-void print(char *s)
-{
-	write(1, s, strlen(s));
-}
 
 int main()
 {
@@ -19,8 +13,13 @@ int main()
 	printf("Hello. Pagesize: %d, soft data limit: %llu, hard: %llu\n", getpagesize(), rlimit.rlim_cur, rlimit.rlim_max);
 	//printf("free chunk header size: %zu bytes\n", sizeof(free_chunk_header_t));
 	//printf("zone header size: %zu bytes\n", sizeof(zone_header_t));
+	test_init();
+	test_tiny_malloc_1();
+	test_tiny_malloc_2();
+	test_tiny_malloc_3();
+	test_tiny_malloc_4();
 
-/*
+	/*
 	char *ptr_1 = malloc(131073);
 	char *ptr_2 = malloc(131090);
 	void *ptr_3 = malloc(2);
@@ -46,7 +45,9 @@ int main()
 	(void)ptr_7;
 
 	show_alloc_mem();
+	*/
 
+/*
 
 	char *ptr_1 = malloc(1);
 	char *ptr_2 = malloc(100);

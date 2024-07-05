@@ -16,18 +16,18 @@ void *malloc(size_t size)
 		heap_initialized = true;
 	}
 
-	size_t chunk_size = ALIGN(size + SIZE_T_SIZE);
-	printf("chunk size: %zu bytes\n", chunk_size);
+	size_t aligned_requested_size = ALIGN(size + SIZE_T_SIZE);
+	printf("aligned requested size: %zu bytes\n", aligned_requested_size);
 
 	/* LARGE ALLOCATION */
-	if (chunk_size > heap_g.small_zone_chunk_max_size)
-		return allocate_large_chunk(chunk_size);
+	if (aligned_requested_size > heap_g.small_zone_chunk_max_size)
+		return allocate_large_chunk(aligned_requested_size);
 	/* TINY ALLOCATION */
-	else if (chunk_size <= heap_g.tiny_zone_chunk_max_size)
+	else if (aligned_requested_size <= heap_g.tiny_zone_chunk_max_size)
 		return allocate_tiny_chunk();
 	/* SMALL ALLOCATION */
 	else
-		return allocate_small_chunk(chunk_size);
+		return allocate_small_chunk(aligned_requested_size);
 
 	//printf("data address: %p\n", ptr);
 }
@@ -82,8 +82,7 @@ void *realloc(void *ptr, size_t size)
 	return NULL;
 }
 
-// TODO: print size allocated by the user instead of chunk size
-// TODO: sort by address (small to big)
+// TODO: print size allocated by the user instead of chunk size (?)
 // TODO: remove all printfs
 void show_alloc_mem(void)
 {
@@ -98,7 +97,7 @@ void show_alloc_mem(void)
     	{
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
-				printf("  %p - %p: %zu bytes\n", chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
+				printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
 				total_bytes += chunk_size;
 			}
         	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
@@ -115,7 +114,7 @@ void show_alloc_mem(void)
 			chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
-				printf("  %p - %p: %zu bytes\n", chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
+				printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
 				total_bytes += chunk_size;
 			}
         	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
@@ -127,7 +126,7 @@ void show_alloc_mem(void)
 	{
 		size_t *chunk_ptr = (size_t *)((uint8_t *)large_zone + ZONE_HEADER_T_SIZE);
 		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
-		printf("  %p - %p: %zu bytes\n", chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
+		printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
 		total_bytes += chunk_size;
 	}
 

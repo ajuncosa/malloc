@@ -7,12 +7,16 @@
 #include <stdio.h> // FIXME: remove
 
 // global
-heap_t heap_g = { .tiny_zones_head = NULL,
-                  .tiny_bin_head = NULL,
+heap_t heap_g = { .tiny_zone_size = 0,
+                  .small_zone_size = 0,
+                  .tiny_zone_chunk_max_size = 0,
+                  .small_zone_chunk_max_size = 0,
+                  .tiny_zones_head = NULL,
                   .small_zones_head = NULL,
+                  .large_zones_head = NULL ,
+                  .tiny_bin_head = NULL,
                   .small_bin_head = NULL,
-                  .small_unsorted_list_head = NULL,
-                  .large_zones_head = NULL };
+                  .small_unsorted_list_head = NULL };
 
 bool init_heap(void)
 {
@@ -171,10 +175,10 @@ void *allocate_small_chunk(size_t chunk_size)
             break;
         }
         // If the zone is empty and there are smaller chunks available, free the zone
-        // (otherwise, we will need to immediately allocate a new chunk after this anyway)
+        // (otherwise, we will need to immediately allocate a new zone after this anyway)
         if (CHUNK_SIZE_WITHOUT_FLAGS(unsorted_chunk->size) == (heap_g.small_zone_size - ZONE_HEADER_T_SIZE)
-            && heap_g.small_bin_head != NULL
-            && unsorted_chunk->size > heap_g.small_bin_head->size) // FIXME: is this check ok?
+            && heap_g.small_bin_head != NULL)
+            //&& unsorted_chunk->size > heap_g.small_bin_head->size) // FIXME: is this check ok?
         {
             printf("Zone is empty, freeing...\n");
             zone_header_t *zone = get_small_zone(unsorted_chunk);

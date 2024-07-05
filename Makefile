@@ -10,9 +10,10 @@ VERBOSE		:= FALSE
 
 SRCS_LIST	:= malloc.c heap.c
 OBJS_LIST	:= $(SRCS_LIST:.c=.o)
+TESTS_LIST	:= test.c test_utils.c init.c tiny.c
 SRCS		:= $(addprefix $(SRCSDIR)/,$(SRCS_LIST))
 OBJS		:= $(addprefix $(OBJSDIR)/,$(OBJS_LIST))
-TEST_SRCS	:= $(TESTDIR)/test.c
+TEST_SRCS	:= $(addprefix $(TESTDIR)/,$(TESTS_LIST))
 LIBFTDIR	:= ${SRCSDIR}/libft
 LIBFT		:= $(LIBDIR)/libft.a
 
