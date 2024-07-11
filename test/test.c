@@ -14,10 +14,15 @@ int main()
 	//printf("free chunk header size: %zu bytes\n", sizeof(free_chunk_header_t));
 	//printf("zone header size: %zu bytes\n", sizeof(zone_header_t));
 	test_init();
-	test_tiny_malloc_1();
-	test_tiny_malloc_2();
-	test_tiny_malloc_3();
-	test_tiny_malloc_4();
+	// test_tiny_malloc_1();
+	// test_tiny_malloc_2();
+	// test_tiny_malloc_3();
+	//test_tiny_malloc_4(); // TODO: free tiny zones when not in use
+	// test_small_malloc_1();
+	// test_small_malloc_2();
+	// test_small_malloc_3();
+	test_small_malloc_4(); // TODO: add a test where the second zone is freed (need to malloc sth after freeing)
+	// TODO: check small chunk sizes including flags after freeing
 
 	/*
 	char *ptr_1 = malloc(131073);

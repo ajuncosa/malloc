@@ -42,3 +42,8 @@ void test_init()
 	free(ptr);
 	pass_test(test_name);
 }
+
+int main()
+{
+	test_init();
+}

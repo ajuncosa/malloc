@@ -17,7 +17,6 @@ void *malloc(size_t size)
 	}
 
 	size_t aligned_requested_size = ALIGN(size + SIZE_T_SIZE);
-	printf("aligned requested size: %zu bytes\n", aligned_requested_size);
 
 	/* LARGE ALLOCATION */
 	if (aligned_requested_size > heap_g.small_zone_chunk_max_size)

@@ -1,18 +1,15 @@
 #include "heap.h"
 
-#define ERROR_MSG_MAX_LEN	1024
-#define GREEN				"\x1B[32m"
-#define RED					"\x1B[31m"
-#define NO_COLOR			"\x1B[0m"
-#define NUMBER_OF_TINY_CHUNKS_PER_ZONE      ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size)
-#define MIN_NUMBER_OF_SMALL_CHUNKS_PER_ZONE ((heap_g.small_zone_size - ZONE_HEADER_T_SIZE) / heap_g.small_zone_chunk_max_size)
-
-/* Tests */
-void test_init();
-void test_tiny_malloc_1(); // malloc(1)
-void test_tiny_malloc_2(); // 3 tiny mallocs
-void test_tiny_malloc_3(); // NUMBER_OF_TINY_CHUNKS_PER_ZONE tiny mallocs
-void test_tiny_malloc_4(); // NUMBER_OF_TINY_CHUNKS_PER_ZONE + 1 tiny mallocs
+#define ERROR_MSG_MAX_LEN	                1024
+#define GREEN				                "\x1B[32m"
+#define RED					                "\x1B[31m"
+#define NO_COLOR			                "\x1B[0m"
+#define TINY_ZONE_SIZE                      getpagesize()
+#define TINY_ZONE_MAX_CHUNK_SIZE            (TINY_ZONE_SIZE / 128)
+#define SMALL_ZONE_SIZE                     (getpagesize() * 800)
+#define SMALL_ZONE_MAX_CHUNK_SIZE           (SMALL_ZONE_SIZE / 100)
+#define NUMBER_OF_TINY_CHUNKS_PER_ZONE      ((TINY_ZONE_SIZE - ZONE_HEADER_T_SIZE) / TINY_ZONE_MAX_CHUNK_SIZE)
+#define MIN_NUMBER_OF_SMALL_CHUNKS_PER_ZONE ((SMALL_ZONE_SIZE - ZONE_HEADER_T_SIZE) / SMALL_ZONE_MAX_CHUNK_SIZE)
 
 /* Utils */
 void pass_test(char *test_name);
