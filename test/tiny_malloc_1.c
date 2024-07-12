@@ -3,7 +3,7 @@
 #include "malloc.h"
 
 // malloc(1)
-void test_tiny_malloc_1()
+int main()
 {
 	char *test_name = "test_tiny_malloc_1";
 	char error_reason[ERROR_MSG_MAX_LEN];
@@ -52,9 +52,4 @@ void test_tiny_malloc_1()
 	}
 
 	pass_test(test_name);
-}
-
-int main()
-{
-	test_tiny_malloc_1();
 }

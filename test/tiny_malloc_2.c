@@ -3,7 +3,7 @@
 #include "malloc.h"
 
 // 3 tiny mallocs
-void test_tiny_malloc_2()
+int main()
 {
 	char *test_name = "test_tiny_malloc_2";
 	char error_reason[ERROR_MSG_MAX_LEN];
@@ -17,6 +17,19 @@ void test_tiny_malloc_2()
 	char *ptr3 = malloc(100);
 	if (ptr3 == NULL)
 		fail_test(test_name, "malloc(100) returned NULL");
+
+	if (heap_g.tiny_zones_head == NULL)
+		fail_test(test_name, "tiny zones head pointer is NULL after tiny malloc");
+	if (heap_g.small_zones_head != NULL)
+		fail_test(test_name, "small zones head pointer is not NULL after tiny malloc");
+	if (heap_g.large_zones_head != NULL)
+		fail_test(test_name, "large zones head pointer is not NULL after tiny malloc");
+	if (heap_g.tiny_bin_head == NULL)
+		fail_test(test_name, "tiny bin head pointer is NULL after tiny malloc");
+	if (heap_g.small_bin_head != NULL)
+		fail_test(test_name, "small bin head pointer is not NULL after tiny malloc");
+	if (heap_g.small_unsorted_list_head != NULL)
+		fail_test(test_name, "small unsorted list head pointer is not NULL after tiny malloc");
 
 	size_t tiny_zones_len = zone_list_len(heap_g.tiny_zones_head);
 	if (tiny_zones_len != 1)
@@ -90,9 +103,3 @@ void test_tiny_malloc_2()
 
 	pass_test(test_name);
 }
-
-int main()
-{
-	test_tiny_malloc_2();
-}
-

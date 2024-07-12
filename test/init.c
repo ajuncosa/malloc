@@ -2,7 +2,7 @@
 #include "tests.h"
 #include "malloc.h"
 
-void test_init()
+int main()
 {
 	char *test_name = "test_init";
 	char error_reason[ERROR_MSG_MAX_LEN];
@@ -40,10 +40,6 @@ void test_init()
 		fail_test(test_name, error_reason);
 	}
 	free(ptr);
-	pass_test(test_name);
-}
 
-int main()
-{
-	test_init();
+	pass_test(test_name);
 }

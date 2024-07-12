@@ -21,7 +21,9 @@ TEST_SRCS_LIST	:= init.c \
 				   small_malloc_1.c \
 				   small_malloc_2.c \
 				   small_malloc_3.c \
-				   small_malloc_4.c
+				   small_malloc_4.c \
+				   large_malloc_1.c \
+				   large_malloc_2.c
 TEST_BINS_LIST	:= $(TEST_SRCS_LIST:.c=)
 
 OBJS			:= $(addprefix $(OBJSDIR)/,$(OBJS_LIST))

@@ -2,14 +2,14 @@
 #include "tests.h"
 #include "malloc.h"
 
- // 3 small mallocs
+ // 3 large mallocs
 int main()
 {
-	char *test_name = "test_small_malloc_2";
+	char *test_name = "test_large_malloc_2";
 	char error_reason[ERROR_MSG_MAX_LEN];
-    size_t malloc_1_size = TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1;
-    size_t malloc_2_size = 10000;
-    size_t malloc_3_size = SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE;
+    size_t malloc_1_size = SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1;
+    size_t malloc_2_size = 500000;
+    size_t malloc_3_size = 1000000;
 
 	char *ptr1 = malloc(malloc_1_size);
 	if (ptr1 == NULL)
@@ -31,38 +31,26 @@ int main()
     }
 
 	if (heap_g.tiny_zones_head != NULL)
-		fail_test(test_name, "tiny zones head pointer is not NULL after 3 small mallocs");
-	if (heap_g.small_zones_head == NULL)
-		fail_test(test_name, "small zones head pointer is NULL after 3 small mallocs");
-	if (heap_g.large_zones_head != NULL)
-		fail_test(test_name, "large zones head pointer is not NULL after 3 small mallocs");
+		fail_test(test_name, "tiny zones head pointer is not NULL after large malloc");
+	if (heap_g.small_zones_head != NULL)
+		fail_test(test_name, "small zones head pointer is not NULL after large malloc");
+	if (heap_g.large_zones_head == NULL)
+		fail_test(test_name, "large zones head pointer is NULL after large malloc");
 	if (heap_g.tiny_bin_head != NULL)
-		fail_test(test_name, "tiny bin head pointer is not NULL after 3 small mallocs");
-	if (heap_g.small_bin_head == NULL)
-		fail_test(test_name, "small bin head pointer is NULL after 3 small mallocs");
+		fail_test(test_name, "tiny bin head pointer is not NULL after large malloc");
+	if (heap_g.small_bin_head != NULL)
+		fail_test(test_name, "small bin head pointer is not NULL after large malloc");
 	if (heap_g.small_unsorted_list_head != NULL)
-		fail_test(test_name, "small unsorted list head pointer is not NULL after 3 small mallocs");
+		fail_test(test_name, "small unsorted list head pointer is not NULL after large malloc");
 
-	size_t small_zones_len = zone_list_len(heap_g.small_zones_head);
-	if (small_zones_len != 1)
+	size_t large_zones_len = zone_list_len(heap_g.large_zones_head);
+	if (large_zones_len != 3)
 	{
-		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of small zones after 3 small mallocs (expected: %d, actual: %zu)\n", 1, small_zones_len);
-		fail_test(test_name, error_reason);
-	}
-	size_t small_bin_len = free_chunk_list_len(heap_g.small_bin_head);
-	if (small_bin_len != 1)
-	{
-		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of free chunks in small bin after 3 small mallocs (expected: %d, actual: %zu)\n", 1, small_bin_len);
-		fail_test(test_name, error_reason);
-	}
-    size_t small_unsorted_list_len = free_chunk_list_len(heap_g.small_unsorted_list_head);
-	if (small_unsorted_list_len != 0)
-	{
-		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of free chunks in small unsorted list after 3 small mallocs (expected: %d, actual: %zu)\n", 0, small_unsorted_list_len);
+		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of large zones after large malloc (expected: %d, actual: %zu)\n", 3, large_zones_len);
 		fail_test(test_name, error_reason);
 	}
 
-	size_t *chunk1_begin = (size_t *)((char *)ptr1 - SIZE_T_SIZE);
+    size_t *chunk1_begin = (size_t *)((char *)ptr1 - SIZE_T_SIZE);
 	if (*chunk1_begin != (ALIGN(malloc_1_size + SIZE_T_SIZE) | IN_USE))
 	{
 		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected small chunk size for address %p (expected: %zu, actual: %zu)\n", ptr1, (ALIGN(malloc_1_size + SIZE_T_SIZE) | IN_USE), *chunk1_begin);
@@ -81,11 +69,11 @@ int main()
 		fail_test(test_name, error_reason);
 	}
 
-	size_t *chunk1_end = (size_t *)((char *)chunk1_begin + CHUNK_SIZE_WITHOUT_FLAGS(*chunk1_begin));
+    size_t *chunk1_end = (size_t *)((char *)chunk1_begin + CHUNK_SIZE_WITHOUT_FLAGS(*chunk1_begin));
 	size_t *chunk2_end = (size_t *)((char *)chunk2_begin + CHUNK_SIZE_WITHOUT_FLAGS(*chunk2_begin));
 	size_t *chunk3_end = (size_t *)((char *)chunk3_begin + CHUNK_SIZE_WITHOUT_FLAGS(*chunk3_begin));
-	
-	if (overlaps(chunk1_begin, chunk2_begin))
+
+    if (overlaps(chunk1_begin, chunk2_begin))
 	{
 		snprintf(error_reason, ERROR_MSG_MAX_LEN, "memory at [%p - %p] and [%p - %p] is overlapping)\n", chunk1_begin, chunk1_end, chunk2_begin, chunk2_end);
 		fail_test(test_name, error_reason);
@@ -105,22 +93,10 @@ int main()
 	free(ptr2);
 	free(ptr3);
 
-	small_zones_len = zone_list_len(heap_g.small_zones_head);
-	if (small_zones_len != 1)
+	large_zones_len = zone_list_len(heap_g.large_zones_head);
+	if (large_zones_len != 0)
 	{
-		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of small zones after 3 small frees (expected: %d, actual: %zu)\n", 1, small_zones_len);
-		fail_test(test_name, error_reason);
-	}
-	small_bin_len = free_chunk_list_len(heap_g.small_bin_head);
-	if (small_bin_len != 1)
-	{
-		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of free chunks in small bin after 3 small frees (expected: %d, actual: %zu)\n", 1, small_bin_len);
-		fail_test(test_name, error_reason);
-	}
-    small_unsorted_list_len = free_chunk_list_len(heap_g.small_unsorted_list_head);
-	if (small_unsorted_list_len != 3)
-	{
-		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of free chunks in small unsorted list after 3 small frees (expected: %d, actual: %zu)\n", 3, small_unsorted_list_len);
+		snprintf(error_reason, ERROR_MSG_MAX_LEN, "unexpected number of large zones after large free (expected: %d, actual: %zu)\n", 0, large_zones_len);
 		fail_test(test_name, error_reason);
 	}
 

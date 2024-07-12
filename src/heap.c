@@ -138,7 +138,7 @@ void *allocate_large_chunk(size_t chunk_size)
 void *allocate_small_chunk(size_t chunk_size)
 {
 	free_chunk_header_t *new_chunk = NULL;
-	printf("allocating small chunk of size %zu.\n", chunk_size);
+	//printf("allocating small chunk of size %zu.\n", chunk_size);
 	//printf("STATE OF THE SMALL LIST0:\n");
     //for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
     //    printf("  size: %zu, ptr: %p\n", it->size, it);
@@ -252,7 +252,7 @@ void *allocate_small_chunk(size_t chunk_size)
 
 void *allocate_tiny_chunk(void)
 {
-	printf("allocating tiny chunk\n");
+	//printf("allocating tiny chunk\n");
 	free_chunk_header_t *new_chunk = heap_g.tiny_bin_head;
 	if (new_chunk == NULL)
 	{

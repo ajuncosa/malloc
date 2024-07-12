@@ -3,7 +3,7 @@
 #include "malloc.h"
 
 // NUMBER_OF_TINY_CHUNKS_PER_ZONE tiny mallocs
-void test_tiny_malloc_3()
+int main()
 {
 	char *test_name = "test_tiny_malloc_3";
 	char error_reason[ERROR_MSG_MAX_LEN];
@@ -31,6 +31,19 @@ void test_tiny_malloc_3()
 		}
 		prev_chunk_begin = chunk_begin;
 	}
+
+	if (heap_g.tiny_zones_head == NULL)
+		fail_test(test_name, "tiny zones head pointer is NULL after tiny malloc");
+	if (heap_g.small_zones_head != NULL)
+		fail_test(test_name, "small zones head pointer is not NULL after tiny malloc");
+	if (heap_g.large_zones_head != NULL)
+		fail_test(test_name, "large zones head pointer is not NULL after tiny malloc");
+	if (heap_g.tiny_bin_head != NULL)
+		fail_test(test_name, "tiny bin head pointer is not NULL after the entire tiny zone has been allocated");
+	if (heap_g.small_bin_head != NULL)
+		fail_test(test_name, "small bin head pointer is not NULL after tiny malloc");
+	if (heap_g.small_unsorted_list_head != NULL)
+		fail_test(test_name, "small unsorted list head pointer is not NULL after tiny malloc");
 
 	size_t tiny_zones_len = zone_list_len(heap_g.tiny_zones_head);
 	if (tiny_zones_len != 1)
@@ -65,9 +78,4 @@ void test_tiny_malloc_3()
 	}
 
 	pass_test(test_name);
-}
-
-int main()
-{
-	test_tiny_malloc_3();
 }
