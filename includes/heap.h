@@ -72,6 +72,8 @@ void add_chunk_to_small_bin(free_chunk_header_t *chunk);
 void remove_chunk_from_list(free_chunk_header_t **list_head, free_chunk_header_t *chunk);
 void replace_chunk_in_list(free_chunk_header_t **list_head, free_chunk_header_t *chunk_to_remove, free_chunk_header_t *new_chunk);
 void set_chunk_footer_size(free_chunk_header_t *chunk);
+free_chunk_header_t *get_chunk_list_last(free_chunk_header_t *list);
+zone_header_t *get_zone_list_last(zone_header_t *list);
 
 // global
 extern heap_t heap_g;

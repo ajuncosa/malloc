@@ -138,13 +138,13 @@ void *allocate_large_chunk(size_t chunk_size)
 void *allocate_small_chunk(size_t chunk_size)
 {
 	free_chunk_header_t *new_chunk = NULL;
-	//printf("allocating small chunk of size %zu.\n", chunk_size);
-	//printf("STATE OF THE SMALL LIST0:\n");
-    //for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
+	printf("allocating small chunk of size %zu.\n", chunk_size);
+	// printf("STATE OF THE SMALL LIST0:\n");
+    // for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
     //    printf("  size: %zu, ptr: %p\n", it->size, it);
 
-    //printf("STATE OF THE UNSORTED LIST0:\n");
-    //for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
+    // printf("STATE OF THE UNSORTED LIST0:\n");
+    // for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
     //    printf("  size: %zu, ptr: %p\n", it->size, it);
 
     free_chunk_header_t *unsorted_chunk = heap_g.small_unsorted_list_head;
@@ -174,11 +174,13 @@ void *allocate_small_chunk(size_t chunk_size)
             remove_chunk_from_list(&heap_g.small_unsorted_list_head, new_chunk);
             break;
         }
-        // If the zone is empty and there are smaller chunks available, free the zone
-        // (otherwise, we will need to immediately allocate a new zone after this anyway)
+
+        // If the zone is empty and there are chunks available in another zone,
+        // free the zone (otherwise, we will need to immediately allocate a new 
+        // one after this anyway)
         if (CHUNK_SIZE_WITHOUT_FLAGS(unsorted_chunk->size) == (heap_g.small_zone_size - ZONE_HEADER_T_SIZE)
-            && heap_g.small_bin_head != NULL)
-            //&& unsorted_chunk->size > heap_g.small_bin_head->size) // FIXME: is this check ok?
+            && (next_unsorted_chunk != NULL
+            || (heap_g.small_bin_head != NULL && CHUNK_SIZE_WITHOUT_FLAGS(get_chunk_list_last(heap_g.small_bin_head)->size) >= chunk_size)))
         {
             printf("Zone is empty, freeing...\n");
             zone_header_t *zone = get_small_zone(unsorted_chunk);
@@ -190,12 +192,12 @@ void *allocate_small_chunk(size_t chunk_size)
             remove_chunk_from_list(&heap_g.small_unsorted_list_head, unsorted_chunk);
             add_chunk_to_small_bin(unsorted_chunk);
         }
-        //printf("STATE OF THE SMALL LIST1:\n");
-        //for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
+        // printf("STATE OF THE SMALL LIST1:\n");
+        // for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
         //    printf("  size: %zu, ptr: %p\n", it->size, it);
-//
-        //printf("STATE OF THE UNSORTED LIST1:\n");
-        //for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
+
+        // printf("STATE OF THE UNSORTED LIST1:\n");
+        // for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
         //    printf("  size: %zu, ptr: %p\n", it->size, it);
             
         unsorted_chunk = next_unsorted_chunk;
@@ -296,7 +298,6 @@ void free_small_chunk(size_t *ptr_to_chunk)
 	{
 		//printf("NOT setting next chunk's PREVIOUS_FREE bc next_chunk is end of zone\n");
 	}
-
     add_chunk_to_list_front(&heap_g.small_unsorted_list_head, freed_chunk);
 	freed_chunk->size &= ~IN_USE;
     set_chunk_footer_size(freed_chunk);
@@ -571,5 +572,23 @@ void set_chunk_footer_size(free_chunk_header_t *chunk)
 {
     size_t *footer_size = (size_t *)((uint8_t *)chunk + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) - SIZE_T_SIZE);
 	*footer_size = CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
+}
+
+free_chunk_header_t *get_chunk_list_last(free_chunk_header_t *list)
+{
+    if (!list)
+		return (NULL);
+	while (list->next)
+		list = list->next;
+	return (list);
+}
+
+zone_header_t *get_zone_list_last(zone_header_t *list)
+{
+    if (!list)
+		return (NULL);
+	while (list->next)
+		list = list->next;
+	return (list);
 }
 

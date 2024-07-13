@@ -83,6 +83,7 @@ void *realloc(void *ptr, size_t size)
 
 // TODO: print size allocated by the user instead of chunk size (?)
 // TODO: remove all printfs
+// TODO: may need to iterate backwards over zones in order to keep the ascending address order
 void show_alloc_mem(void)
 {
 	size_t total_bytes = 0;
