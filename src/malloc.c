@@ -88,7 +88,7 @@ void show_alloc_mem(void)
 {
 	size_t total_bytes = 0;
 
-	printf("TINY: %p\n", heap_g.tiny_zones_head);
+	printf("TINY: %p\n", heap_g.tiny_zones_head); // TODO: print this once per zone of the same type?
 	for (zone_header_t *tiny_zone = heap_g.tiny_zones_head; tiny_zone != NULL; tiny_zone = tiny_zone->next)
 	{
 		size_t *chunk_ptr = (size_t *)((uint8_t *)tiny_zone + ZONE_HEADER_T_SIZE);

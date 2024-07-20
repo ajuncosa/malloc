@@ -1,8 +1,11 @@
 #include "heap.h"
 
 #define ERROR_MSG_MAX_LEN	                1024
-#define GREEN				                "\x1B[32m"
 #define RED					                "\x1B[31m"
+#define GREEN				                "\x1B[32m"
+#define YELLOW					            "\x1B[33m"
+#define BLUE					            "\x1B[34m"
+#define MAGENTA					            "\x1B[35m"
 #define NO_COLOR			                "\x1B[0m"
 
 #define TINY_ZONE_SIZE                      getpagesize()
@@ -46,3 +49,6 @@ void assert_size_lt(char *test_name, size_t actual, size_t expected, char *file_
 void assert_pointer_eq(char *test_name, void *actual, void *expected, char *file_name, int line_n);
 void assert_pointer_ne(char *test_name, void *actual, void *expected, char *file_name, int line_n);
 void assert_no_chunk_overlap(char *test_name, size_t *chunk_1_begin, size_t *chunk_2_begin, char *file_name, int line_n);
+
+void hexdump(void *mem, unsigned int len);
+void visualise_memory(void);

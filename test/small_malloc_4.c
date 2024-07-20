@@ -66,6 +66,7 @@ int main()
 
 	ptr = malloc(malloc_size - 100);
 	ASSERT_POINTER_NE(ptr, NULL);
+
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.small_zones_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_bin_head), 1);
 	ASSERT_SIZE_EQ(CHUNK_SIZE_WITHOUT_FLAGS(heap_g.small_bin_head->size), heap_g.small_zone_size - ZONE_HEADER_T_SIZE - (ALIGN(malloc_size - 100 + SIZE_T_SIZE)));

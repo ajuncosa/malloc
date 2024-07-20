@@ -2,3 +2,5 @@ build
 *.o
 *.a
 *.so
+*.ansi
+*.ans

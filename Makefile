@@ -22,6 +22,7 @@ TEST_SRCS_LIST	:= init.c \
 				   small_malloc_2.c \
 				   small_malloc_3.c \
 				   small_malloc_4.c \
+				   small_malloc_5.c \
 				   large_malloc_1.c \
 				   large_malloc_2.c
 TEST_BINS_LIST	:= $(TEST_SRCS_LIST:.c=)
@@ -51,7 +52,7 @@ else
 HIDE = @
 endif
 
-$(NAME):	$(OBJS) $(LIBFT)
+$(NAME):	$(OBJS) $(LIBFT) 
 			@mkdir -p $(LIBDIR)
 			@echo Linking $@
 			$(HIDE)$(CC) $(LDFLAGS) -shared $^ -o $@
@@ -66,6 +67,7 @@ all:		$(NAME)
 $(LIBFT):
 			$(HIDE)$(MAKE) -C $(LIBFTDIR)
 
+#FIXME: add headerfiles and test_common to deps
 $(BINDIR)/test_%: $(TESTDIR)/%.c
 			@mkdir -p $(BINDIR)
 			@echo Building $@

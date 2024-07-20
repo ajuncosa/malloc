@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "tests.h"
 
 void pass_test(char *test_name)
@@ -88,4 +89,141 @@ bool overlaps(void *ptr1, void *ptr2)
 		return true;
 
 	return false;
+}
+
+void hexdump(void *mem, unsigned int len)
+{
+    unsigned int i, j, k;
+    
+    for(i = 0; i < len + ((len % 16) ? (16 - len % 16) : 0); i++) {
+        if(i % 16 == 0) {
+            printf("0x%06x: ", i);
+            k = 0;
+        }
+
+        if (k == 4 || k == 12)
+            printf(" ");
+
+        if (k == 8)
+            printf("   ");
+        k++;
+
+        if(i < len) {
+            printf("%02x ", 0xFF & ((char*)mem)[i]);
+        }
+        else {
+            printf("   ");
+        }
+        
+        if(i % 16 == (16 - 1)) {
+            for(j = i - (16 - 1); j <= i; j++) {
+                if(j >= len) {
+                    putchar(' ');
+                }
+                else if(isprint(((char*)mem)[j])) {
+                    putchar(0xFF & ((char*)mem)[j]);        
+                }
+                else {
+                    putchar('.');
+                }
+            }
+            putchar('\n');
+        }
+    }
+}
+
+void visualise_memory(void)
+{
+	for (zone_header_t *tiny_zone = heap_g.tiny_zones_head; tiny_zone != NULL; tiny_zone = tiny_zone->next)
+	{
+		printf("| %p " GREEN "tiny zone header (%zu bytes): %p %p" NO_COLOR " |\n",
+			tiny_zone,
+			ZONE_HEADER_T_SIZE,
+			tiny_zone->prev,
+			tiny_zone->next);
+
+		size_t *chunk_ptr = (size_t *)((uint8_t *)tiny_zone + ZONE_HEADER_T_SIZE);
+		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+		for (size_t i = 0; i < ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size); i++)
+    	{
+			if ((*chunk_ptr & IN_USE) == IN_USE)
+			{
+				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d" NO_COLOR " | " MAGENTA "in use body (%zu bytes)" NO_COLOR " |\n" ,
+					chunk_ptr, SIZE_T_SIZE, chunk_size, (uint8_t)(*chunk_ptr & PREVIOUS_FREE), (uint8_t)(*chunk_ptr & IN_USE),
+					chunk_size - SIZE_T_SIZE);
+			}
+			else
+			{
+				free_chunk_header_t *free_chunk_ptr = (free_chunk_header_t *)chunk_ptr;
+    			size_t *footer_size = (size_t *)((uint8_t *)chunk_ptr + chunk_size - SIZE_T_SIZE);
+				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d %p %p" NO_COLOR " | " YELLOW "free bytes (%zu bytes)" NO_COLOR " | " BLUE "size (%zu bytes): %zu" NO_COLOR " |\n" ,
+					chunk_ptr, sizeof(free_chunk_header_t), chunk_size, (uint8_t)(*chunk_ptr & PREVIOUS_FREE), (uint8_t)(*chunk_ptr & IN_USE), free_chunk_ptr->prev, free_chunk_ptr->next,
+					chunk_size - sizeof(free_chunk_header_t) - SIZE_T_SIZE, SIZE_T_SIZE, *footer_size);
+			}
+        	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
+		}
+	}
+	for (zone_header_t *small_zone = heap_g.small_zones_head; small_zone != NULL; small_zone = small_zone->next)
+	{
+		printf("| %p " GREEN "small zone header (%zu bytes): %p %p" NO_COLOR " |\n",
+			small_zone,
+			ZONE_HEADER_T_SIZE,
+			small_zone->prev,
+			small_zone->next);
+
+		size_t *chunk_ptr = (size_t *)((uint8_t *)small_zone + ZONE_HEADER_T_SIZE);
+		size_t chunk_size;
+		for (size_t i = 0; i < (heap_g.small_zone_size - ZONE_HEADER_T_SIZE); i += chunk_size)
+    	{
+			chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+			uint8_t in_use_bit_flag = (uint8_t)(*chunk_ptr & IN_USE);
+			uint8_t prev_free_bit_flag = (uint8_t)(*chunk_ptr & PREVIOUS_FREE);
+			if ((*chunk_ptr & IN_USE) == IN_USE)
+			{
+				size_t in_use_bytes = chunk_size - SIZE_T_SIZE;
+				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d" NO_COLOR " | " MAGENTA "in use body (%zu bytes)" NO_COLOR " |\n" ,
+					chunk_ptr, SIZE_T_SIZE, chunk_size, prev_free_bit_flag, in_use_bit_flag, // chunk header
+					in_use_bytes); // chunk data
+			}
+			else
+			{
+				free_chunk_header_t *free_chunk_ptr = (free_chunk_header_t *)chunk_ptr;
+    			size_t *footer_size = (size_t *)((uint8_t *)chunk_ptr + chunk_size - SIZE_T_SIZE);
+				size_t free_bytes = chunk_size - sizeof(free_chunk_header_t) - SIZE_T_SIZE;
+				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d %p %p" NO_COLOR " | " YELLOW "free bytes (%zu bytes)" NO_COLOR " | " BLUE "size (%zu bytes): %zu" NO_COLOR " |\n" ,
+					chunk_ptr, sizeof(free_chunk_header_t), chunk_size, prev_free_bit_flag, in_use_bit_flag, free_chunk_ptr->prev, free_chunk_ptr->next, // chunk header
+					free_bytes, // free space
+					SIZE_T_SIZE, *footer_size); // footer size
+			}
+        	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
+		}
+	}  
+
+	for (zone_header_t *large_zone = heap_g.large_zones_head; large_zone != NULL; large_zone = large_zone->next)
+	{
+		printf("| %p " GREEN "large zone header (%zu bytes): %p %p" NO_COLOR " |\n",
+			large_zone,
+			ZONE_HEADER_T_SIZE,
+			large_zone->prev,
+			large_zone->next);
+		size_t *chunk_ptr = (size_t *)((uint8_t *)large_zone + ZONE_HEADER_T_SIZE);
+		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+		uint8_t in_use_bit_flag = (uint8_t)(*chunk_ptr & IN_USE);
+		uint8_t prev_free_bit_flag = (uint8_t)(*chunk_ptr & PREVIOUS_FREE);
+		if ((*chunk_ptr & IN_USE) == IN_USE)
+		{
+			size_t in_use_bytes = chunk_size - SIZE_T_SIZE;
+			printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d" NO_COLOR " | " MAGENTA "in use body (%zu bytes)" NO_COLOR " |\n" ,
+				chunk_ptr, SIZE_T_SIZE, chunk_size, prev_free_bit_flag, in_use_bit_flag, // chunk header
+				in_use_bytes); // chunk data
+		}
+		else // should never go in here
+		{
+			free_chunk_header_t *free_chunk_ptr = (free_chunk_header_t *)chunk_ptr;
+			size_t free_bytes = chunk_size - sizeof(free_chunk_header_t) - SIZE_T_SIZE;
+			printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d %p %p" NO_COLOR " | " YELLOW "free bytes (%zu bytes)" NO_COLOR " |\n" ,
+				chunk_ptr, sizeof(free_chunk_header_t), chunk_size, prev_free_bit_flag, in_use_bit_flag, free_chunk_ptr->prev, free_chunk_ptr->next, // chunk header
+				free_bytes); // free space
+		}
+	}
 }

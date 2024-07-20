@@ -139,38 +139,28 @@ void *allocate_small_chunk(size_t chunk_size)
 {
 	free_chunk_header_t *new_chunk = NULL;
 	printf("allocating small chunk of size %zu.\n", chunk_size);
-	// printf("STATE OF THE SMALL LIST0:\n");
-    // for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
-    //    printf("  size: %zu, ptr: %p\n", it->size, it);
-
-    // printf("STATE OF THE UNSORTED LIST0:\n");
-    // for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
-    //    printf("  size: %zu, ptr: %p\n", it->size, it);
 
     free_chunk_header_t *unsorted_chunk = heap_g.small_unsorted_list_head;
     free_chunk_header_t *next_unsorted_chunk = NULL;
 	while (unsorted_chunk != NULL)
 	{
+        //printf("checking unsorted %p..\n", unsorted_chunk);
 		if (CHUNK_SIZE_WITHOUT_FLAGS(unsorted_chunk->size) == chunk_size)
 		{
-            //printf("Found a match in the unsorted list!\n");
+            printf("Found a match in the unsorted list!\n");
 			new_chunk = unsorted_chunk;
-            //printf("Removing chunk from unsorted list...\n");
             remove_chunk_from_list(&heap_g.small_unsorted_list_head, new_chunk);
 			break;
 		}
-        //printf("Not a match. Checking if it is possible to coalesce...\n");
 
         // Deferred coalescing
         unsorted_chunk = coalesce(unsorted_chunk);
         next_unsorted_chunk = unsorted_chunk->next;
-        //printf("NEXT: %p\n", next_unsorted_chunk);
         
         if (CHUNK_SIZE_WITHOUT_FLAGS(unsorted_chunk->size) == chunk_size)
         {
-            //printf("The coalesced chunk is a match!\n");
+            printf("The coalesced chunk is a match!\n");
             new_chunk = unsorted_chunk;
-            //printf("Removing chunk from unsorted list...\n");
             remove_chunk_from_list(&heap_g.small_unsorted_list_head, new_chunk);
             break;
         }
@@ -189,27 +179,21 @@ void *allocate_small_chunk(size_t chunk_size)
         }
         else
         {
+            printf("Not a match, adding to the small bin...\n");
             remove_chunk_from_list(&heap_g.small_unsorted_list_head, unsorted_chunk);
             add_chunk_to_small_bin(unsorted_chunk);
         }
-        // printf("STATE OF THE SMALL LIST1:\n");
-        // for (free_chunk_header_t *it = heap_g.small_bin_head; it != NULL; it = it->next)
-        //    printf("  size: %zu, ptr: %p\n", it->size, it);
-
-        // printf("STATE OF THE UNSORTED LIST1:\n");
-        // for (free_chunk_header_t *it = heap_g.small_unsorted_list_head; it != NULL; it = it->next)
-        //    printf("  size: %zu, ptr: %p\n", it->size, it);
             
         unsorted_chunk = next_unsorted_chunk;
 	}
     if (new_chunk == NULL)
     {
-        //printf("Could not find a match in the unsorted list; checking the small bin\n");
+        printf("Could not find a match in the unsorted list; checking the small bin\n");
 	    for (free_chunk_header_t *chunk = heap_g.small_bin_head; chunk != NULL; chunk = chunk->next)
         {
             if (CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) >= chunk_size)
             {
-                //printf("Found a match in the small bin\n");
+                printf("Found a match in the small bin\n");
                 new_chunk = chunk;
                 break;
             }
@@ -217,7 +201,6 @@ void *allocate_small_chunk(size_t chunk_size)
         if (new_chunk ==  NULL)
         {
             // the zone is full or there is not a big enough free chunk
-            //printf("no big enough free chunks in small bin: need a new small zone\n");
             if (allocate_new_small_zone() == NULL)
                 return NULL;
             new_chunk = heap_g.small_bin_head;
@@ -234,14 +217,7 @@ void *allocate_small_chunk(size_t chunk_size)
             zone_header_t *new_chunk_zone = get_small_zone(new_chunk);
             size_t *next_chunk = (size_t *)((uint8_t *)new_chunk + CHUNK_SIZE_WITHOUT_FLAGS(new_chunk->size));
             if (next_chunk != (size_t *)((uint8_t *)new_chunk_zone + heap_g.small_zone_size))
-            {
-                //printf("Unsetting next chunk's PREVIOUS_FREE\n");
                 *next_chunk &= ~PREVIOUS_FREE;
-            }
-            else
-            {
-                //printf("NOT unsetting next chunk's PREVIOUS_FREE bc next_chunk is end of zone\n");
-            }
         }
     }
 
@@ -275,7 +251,6 @@ void *allocate_tiny_chunk(void)
 void free_large_chunk(size_t *ptr_to_chunk)
 {
 	zone_header_t *ptr_to_zone = (zone_header_t *)((uint8_t *)ptr_to_chunk - ZONE_HEADER_T_SIZE);
-	//printf("ptr to zone: %p, next: %p, prev: %p\n", ptr_to_zone, ptr_to_zone->next, ptr_to_zone->prev);
     remove_zone_from_list(&heap_g.large_zones_head, ptr_to_zone);
 	if (munmap(ptr_to_zone, ALIGN(*ptr_to_chunk) + ZONE_HEADER_T_SIZE) == -1)
 	{
@@ -290,14 +265,8 @@ void free_small_chunk(size_t *ptr_to_chunk)
 	zone_header_t *freed_chunk_zone = get_small_zone(freed_chunk);
 	size_t *next_chunk = (size_t *)((uint8_t *)freed_chunk + CHUNK_SIZE_WITHOUT_FLAGS(freed_chunk->size));
 	if (next_chunk != (size_t *)((uint8_t *)freed_chunk_zone + heap_g.small_zone_size))
-	{
-		//printf("Setting next chunk to PREVIOUS_FREE.\n");
 		*next_chunk |= PREVIOUS_FREE;
-	}
-	else
-	{
-		//printf("NOT setting next chunk's PREVIOUS_FREE bc next_chunk is end of zone\n");
-	}
+
     add_chunk_to_list_front(&heap_g.small_unsorted_list_head, freed_chunk);
 	freed_chunk->size &= ~IN_USE;
     set_chunk_footer_size(freed_chunk);
@@ -414,88 +383,48 @@ void add_chunk_to_small_bin(free_chunk_header_t *chunk)
 free_chunk_header_t *coalesce(free_chunk_header_t *chunk)
 {
     free_chunk_header_t *coalesced_chunk = chunk;
+    size_t coalesced_chunk_size = chunk->size;
 
     void *chunk_zone_begin = (uint8_t *)get_small_zone(chunk) + ZONE_HEADER_T_SIZE;
     void *chunk_zone_end = (void *)((uint8_t *)chunk_zone_begin + heap_g.small_zone_size - ZONE_HEADER_T_SIZE);
 
     // If PREVIOUS_FREE is not set, the previous chunk footer size_t is not usable (those bytes might be in use by the user payload)
     bool prev_is_free_to_coalesce = ((void *)chunk > chunk_zone_begin) && ((chunk->size & PREVIOUS_FREE) == PREVIOUS_FREE);
+    size_t prev_size = *(size_t *)((uint8_t *)chunk - SIZE_T_SIZE);
+    size_t *prev_chunk_ptr = (size_t *)((uint8_t *)chunk - prev_size);
     size_t *next_chunk_ptr = (size_t *)((uint8_t *)chunk + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size));
     bool next_is_free_to_coalesce = ((void *)next_chunk_ptr < chunk_zone_end) && ((*next_chunk_ptr & IN_USE) == 0);
-
-    if (prev_is_free_to_coalesce && !next_is_free_to_coalesce)
+    
+    if (prev_is_free_to_coalesce)
     {
-        size_t prev_size = *(size_t *)((uint8_t *)chunk - SIZE_T_SIZE);
-        size_t *prev_chunk_ptr = (size_t *)((uint8_t *)chunk - prev_size);
-        /*
-        while (prev_is_free_to_coalesce == true)
+        while (prev_is_free_to_coalesce)
         {
-            prev_size = *(size_t *)((uint8_t *)chunk - SIZE_T_SIZE);
-            prev_chunk_ptr = (size_t *)((uint8_t *)chunk - prev_size);
-            prev_is_free_to_coalesce = ((void *)chunk > chunk_zone_begin) && ((chunk->size & PREVIOUS_FREE) == PREVIOUS_FREE);
+            //printf("Colaescing with prev chunk %p.\n", prev_chunk_ptr);
+            coalesced_chunk = (free_chunk_header_t *)prev_chunk_ptr;
+            coalesced_chunk_size += CHUNK_SIZE_WITHOUT_FLAGS(*prev_chunk_ptr);
+            remove_chunk_from_list(&heap_g.small_bin_head, (free_chunk_header_t *)prev_chunk_ptr);
+            remove_chunk_from_list(&heap_g.small_unsorted_list_head, (free_chunk_header_t *)prev_chunk_ptr);
+            prev_is_free_to_coalesce = ((void *)prev_chunk_ptr >= chunk_zone_begin) && ((*prev_chunk_ptr & PREVIOUS_FREE) == PREVIOUS_FREE);
+            prev_size = *(size_t *)((uint8_t *)prev_chunk_ptr - SIZE_T_SIZE);
+            prev_chunk_ptr = (size_t *)((uint8_t *)prev_chunk_ptr - prev_size);
         }
-        */
-        if ((*prev_chunk_ptr & IN_USE) == 0)
-        {
-            printf("Colaescing with prev chunk of size: %zu.\n", prev_size);
-            free_chunk_header_t *prev_free_chunk = (free_chunk_header_t *)prev_chunk_ptr;
-            // FIXME: will these never have previous_free? do I need to do a loop?
-            prev_free_chunk->size += CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
-            set_chunk_footer_size(prev_free_chunk);
-            coalesced_chunk = prev_free_chunk;
-
-            remove_chunk_from_list(&heap_g.small_bin_head, coalesced_chunk);
-            remove_chunk_from_list(&heap_g.small_unsorted_list_head, coalesced_chunk);
-
-            replace_chunk_in_list(&heap_g.small_unsorted_list_head, chunk, coalesced_chunk);
-        }
-        else
-        {
-            printf("Something does not seem ok when coalescing: PREVIOUS_FREE is set, but the previous chunk's IN_USE is also set.");
-            exit(1);
-        }
+        replace_chunk_in_list(&heap_g.small_unsorted_list_head, chunk, coalesced_chunk);
     }
-    else if (!prev_is_free_to_coalesce && next_is_free_to_coalesce)
+
+    while (next_is_free_to_coalesce)
     {
-        free_chunk_header_t *next_free_chunk = (free_chunk_header_t *)next_chunk_ptr;
-        printf("Colaescing with next chunk of size: %zu.\n", CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr));
-        // FIXME: will these never have previous_free? do I need to do a loop?
-        chunk->size += CHUNK_SIZE_WITHOUT_FLAGS(next_free_chunk->size);
-        set_chunk_footer_size(chunk);
-        coalesced_chunk = chunk;
-
-        remove_chunk_from_list(&heap_g.small_bin_head, next_free_chunk);
-        remove_chunk_from_list(&heap_g.small_unsorted_list_head, next_free_chunk);
+        //printf("Colaescing with next chunk %p.\n", next_chunk_ptr);
+        coalesced_chunk_size += CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr);
+        remove_chunk_from_list(&heap_g.small_bin_head, (free_chunk_header_t *)next_chunk_ptr);
+        remove_chunk_from_list(&heap_g.small_unsorted_list_head, (free_chunk_header_t *)next_chunk_ptr);
+        next_chunk_ptr = (size_t *)((uint8_t *)next_chunk_ptr + CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr));
+        next_is_free_to_coalesce = ((void *)next_chunk_ptr < chunk_zone_end) && ((*next_chunk_ptr & IN_USE) == 0);
     }
-    else if (prev_is_free_to_coalesce && next_is_free_to_coalesce)
-    {
-        size_t prev_size = *(size_t *)((uint8_t *)chunk - SIZE_T_SIZE);
-        size_t *prev_chunk_ptr = (size_t *)((uint8_t *)chunk - prev_size);
-        if ((*prev_chunk_ptr & IN_USE) == 0)
-        {
-            printf("Colaescing with prev and next chunk of sizes: %zu, %zu.\n", *(size_t *)((uint8_t *)chunk - SIZE_T_SIZE), CHUNK_SIZE_WITHOUT_FLAGS(*next_chunk_ptr));
-            free_chunk_header_t *prev_free_chunk = (free_chunk_header_t *)prev_chunk_ptr;
-            free_chunk_header_t *next_free_chunk = (free_chunk_header_t *)next_chunk_ptr;
-            // FIXME: will these never have previous_free? do I need to do a loop?
-            prev_free_chunk->size += + CHUNK_SIZE_WITHOUT_FLAGS(chunk->size) + CHUNK_SIZE_WITHOUT_FLAGS(next_free_chunk->size);
-            set_chunk_footer_size(prev_free_chunk);
-            coalesced_chunk = prev_free_chunk;
 
-            remove_chunk_from_list(&heap_g.small_bin_head, coalesced_chunk);
-            remove_chunk_from_list(&heap_g.small_unsorted_list_head, coalesced_chunk);
+    coalesced_chunk->size = coalesced_chunk_size;
+    set_chunk_footer_size(coalesced_chunk);
 
-            remove_chunk_from_list(&heap_g.small_bin_head, next_free_chunk);
-            remove_chunk_from_list(&heap_g.small_unsorted_list_head, next_free_chunk);
-
-            replace_chunk_in_list(&heap_g.small_unsorted_list_head, chunk, coalesced_chunk);
-        }
-        else
-        {
-            printf("Something does not seem ok when coalescing: PREVIOUS_FREE is set, but the previous chunk's IN_USE is also set.");
-            exit(1);
-        }
-    }
-    printf("coalesced chunk size: %zu\n", CHUNK_SIZE_WITHOUT_FLAGS(coalesced_chunk->size));
+    printf("coalesced chunk size: %zu, prev: %p, next: %p\n", CHUNK_SIZE_WITHOUT_FLAGS(coalesced_chunk->size), coalesced_chunk->prev, coalesced_chunk->next);
     return coalesced_chunk;
 }
 
@@ -504,7 +433,7 @@ free_chunk_header_t *try_split_chunk(size_t *chunk_ptr, size_t required_size)
     if ((CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - required_size) <= heap_g.tiny_zone_chunk_max_size)
         return NULL;
 
-    //printf("Splitting chunk.\n");
+    printf("Splitting chunk.\n");
 
     // If the remainder of splitting would be big enough to store
     // more small chunks, split the chunk:
