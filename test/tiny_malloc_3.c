@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "tests.h"
+#include "test_utils.h"
 #include "malloc.h"
 
 // NUMBER_OF_TINY_CHUNKS_PER_ZONE tiny mallocs

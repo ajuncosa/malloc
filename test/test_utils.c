@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "tests.h"
+#include "test_utils.h"
 
 void pass_test(char *test_name)
 {

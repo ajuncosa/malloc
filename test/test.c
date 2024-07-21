@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/resource.h>
-#include "tests.h"
+#include "test_utils.h"
 
 #define M (1024 * 1024)
 

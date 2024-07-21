@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "tests.h"
+#include "test_utils.h"
 #include "malloc.h"
 
  // 3 small mallocs

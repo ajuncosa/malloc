@@ -1,3 +1,6 @@
+#ifndef TEST_UTILS_H
+#define TEST_UTILS_H
+
 #include "heap.h"
 
 #define ERROR_MSG_MAX_LEN	                1024
@@ -54,3 +57,5 @@ void assert_no_chunk_overlap(char *test_name, size_t *chunk_1_begin, size_t *chu
 
 void hexdump(void *mem, unsigned int len);
 void visualise_memory(void);
+
+#endif
