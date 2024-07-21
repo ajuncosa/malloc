@@ -31,6 +31,7 @@
     snprintf(reason, ERROR_MSG_MAX_LEN, "at %s:%d: " format, file_name, line, ##__VA_ARGS__); \
     fail_test(test_name, reason); }
 
+#define ASSERT_CHAR_EQ(actual, expected) assert_char_eq(test_name, actual, expected, __FILE__, __LINE__)
 #define ASSERT_SIZE_EQ(actual, expected) assert_size_eq(test_name, actual, expected, __FILE__, __LINE__)
 #define ASSERT_SIZE_LT(actual, expected) assert_size_lt(test_name, actual, expected, __FILE__, __LINE__)
 #define ASSERT_POINTER_EQ(actual, expected) assert_pointer_eq(test_name, actual, expected, __FILE__, __LINE__)
@@ -44,6 +45,7 @@ size_t zone_list_len(zone_header_t *list);
 size_t free_chunk_list_len(free_chunk_header_t *list);
 bool overlaps(void *chunk_1_begin, void *chunk_2_begin);
 
+void assert_char_eq(char *test_name, char actual, char expected, char *file_name, int line_n);
 void assert_size_eq(char *test_name, size_t actual, size_t expected, char *file_name, int line_n);
 void assert_size_lt(char *test_name, size_t actual, size_t expected, char *file_name, int line_n);
 void assert_pointer_eq(char *test_name, void *actual, void *expected, char *file_name, int line_n);

@@ -7,7 +7,7 @@ int main()
 {
 	char *test_name = "test_small_malloc_1";
 
-	char *ptr = malloc(129);
+	char *ptr = malloc(TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1);
 	ASSERT_POINTER_NE(ptr, NULL);
 	
 	ASSERT_POINTER_EQ(heap_g.tiny_zones_head, NULL);

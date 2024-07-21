@@ -14,6 +14,12 @@ void fail_test(char *test_name, char *reason)
 	exit(1);
 }
 
+void assert_char_eq(char *test_name, char actual, char expected, char *file_name, int line_n)
+{
+	if (actual != expected)
+		FAIL_TEST_AT(test_name, file_name, line_n, "Char equality assertion failed (expected: %c, actual: %c)", expected, actual);
+}
+
 void assert_size_eq(char *test_name, size_t actual, size_t expected, char *file_name, int line_n)
 {
 	if (actual != expected)

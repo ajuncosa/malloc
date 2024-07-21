@@ -27,8 +27,6 @@ void *malloc(size_t size)
 	/* SMALL ALLOCATION */
 	else
 		return allocate_small_chunk(aligned_requested_size);
-
-	//printf("data address: %p\n", ptr);
 }
 
 void free(void *ptr)

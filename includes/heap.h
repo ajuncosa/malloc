@@ -62,7 +62,8 @@ void *realloc_large_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
 void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size);
 void *realloc_tiny_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size);
 
-free_chunk_header_t *coalesce(free_chunk_header_t *chunk);
+free_chunk_header_t *coalesce_backward(free_chunk_header_t *chunk);
+void coalesce_forward(size_t *chunk);
 free_chunk_header_t *try_split_chunk(size_t *chunk_ptr, size_t required_size);
 
 //utils

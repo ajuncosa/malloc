@@ -72,7 +72,7 @@ int main()
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.small_zones_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_bin_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_unsorted_list_head), 0);
-	
+
     free(ptr5);
 
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.small_zones_head), 1);
