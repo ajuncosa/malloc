@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "test_utils.h"
 #include "malloc.h"
 

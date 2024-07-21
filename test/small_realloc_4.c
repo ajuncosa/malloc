@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "test_utils.h"
 #include "malloc.h"
 
@@ -17,7 +16,6 @@ int main()
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.small_zones_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_bin_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_unsorted_list_head), 0);
-visualise_memory();
     
     char *new_ptr = realloc(ptr, realloc_size);
 	ASSERT_POINTER_NE(new_ptr, NULL);
@@ -32,7 +30,6 @@ visualise_memory();
 	size_t *new_chunk_begin = (size_t *)((char *)new_ptr - SIZE_T_SIZE);
 	ASSERT_SIZE_EQ(*new_chunk_begin, (ALIGN(malloc_size + SIZE_T_SIZE) | IN_USE));
 
-visualise_memory();
 	free(new_ptr);
 
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.small_zones_head), 1);

@@ -41,6 +41,8 @@
 #define ASSERT_POINTER_NE(actual, expected) assert_pointer_ne(test_name, actual, expected, __FILE__, __LINE__)
 #define ASSERT_NO_CHUNK_OVERLAP(chunk_1_begin, chunk_2_begin) assert_no_chunk_overlap(test_name, chunk_1_begin, chunk_2_begin, __FILE__, __LINE__)
 
+#define RANDOM_IN_RANGE(min, max) (rand() % (max + 1 - min) + min)
+
 /* Utils */
 void pass_test(char *test_name);
 void fail_test(char *test_name, char *reason);

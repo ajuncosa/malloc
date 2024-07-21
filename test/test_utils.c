@@ -11,6 +11,10 @@ void pass_test(char *test_name)
 void fail_test(char *test_name, char *reason)
 {
 	printf(RED "[TEST KO] %s: %s\n" NO_COLOR, test_name, reason);
+	freopen("test_output.ansi", "w", stdout);
+	visualise_memory();
+	fclose(stdout);
+	freopen("/dev/tty", "w", stdout);
 	exit(1);
 }
 
