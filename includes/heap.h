@@ -32,8 +32,8 @@ typedef struct heap_s
 {
     unsigned int        tiny_zone_size;
     unsigned int        small_zone_size;
-    unsigned int        tiny_zone_chunk_max_size;
-    unsigned int        small_zone_chunk_max_size;
+    size_t              tiny_zone_chunk_max_size;
+    size_t              small_zone_chunk_max_size;
 
     zone_header_t       *tiny_zones_head; // doubly linked list of tiny zones
     zone_header_t       *small_zones_head; // doubly linked list of small zones

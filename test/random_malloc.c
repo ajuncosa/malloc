@@ -2,8 +2,6 @@
 #include "test_utils.h"
 #include "malloc.h"
 
-#include <stdio.h>
-
  // 1000 random mallocs no frees
 int main()
 {
@@ -48,10 +46,11 @@ int main()
 		{
 			ASSERT_SIZE_EQ(*chunk_begin, (ALIGN(malloc_size + SIZE_T_SIZE) | IN_USE));
 			small_malloced_bytes += CHUNK_SIZE_WITHOUT_FLAGS(*chunk_begin);
-			if (heap_g.small_zone_size - small_malloced_bytes <= TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE)
+			if (heap_g.small_zone_size < small_malloced_bytes
+				|| heap_g.small_zone_size - small_malloced_bytes <= TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE)
 			{
 				number_of_small_zones++;
-				small_malloced_bytes = 0;
+				small_malloced_bytes = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_begin);
 			}
 			ASSERT_SIZE_EQ(zone_list_len(heap_g.small_zones_head), number_of_small_zones);
 		}
