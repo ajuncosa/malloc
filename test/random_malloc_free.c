@@ -12,10 +12,19 @@ int main()
 	size_t in_use_tiny_chunk_size = (size_t)(getpagesize() / 128 | IN_USE);
 
 	size_t malloc_size = 0;
+	uint8_t malloc_size_type = 0; // to distribute between tiny, small and large
 	char *ptr = NULL;
 	size_t *chunk_begin = NULL;
 	for (int i = 0; i < 1000; i++)
 	{
+		malloc_size_type = RANDOM_IN_RANGE(0, 2);
+		if (malloc_size_type == 0)
+			malloc_size = RANDOM_IN_RANGE(0, TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE);
+		else if (malloc_size_type == 1)
+			malloc_size = RANDOM_IN_RANGE(TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1, SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE);
+		else
+			malloc_size = RANDOM_IN_RANGE(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1, SIZE_MAX - SIZE_T_SIZE - 1);
+
 		malloc_size = RANDOM_IN_RANGE(0, SMALL_ZONE_MAX_CHUNK_SIZE * 2);
 		ptr = malloc(malloc_size);
 		if (malloc_size == 0)

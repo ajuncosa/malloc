@@ -2,6 +2,8 @@
 #include "test_utils.h"
 #include "malloc.h"
 
+#include <stdio.h>
+
  // 1000 random mallocs no frees
 int main()
 {
@@ -15,12 +17,21 @@ int main()
 	size_t number_of_large_zones = 0;
 
 	size_t malloc_size = 0;
+	uint8_t malloc_size_type = 0; // to distribute between tiny, small and large
 	char *ptr = NULL;
 	size_t *chunk_begin = NULL;
 	size_t *prev_chunk_begin = NULL;
 	for (int i = 0; i < 1000; i++)
 	{
-		malloc_size = RANDOM_IN_RANGE(0, SMALL_ZONE_MAX_CHUNK_SIZE * 2);
+		malloc_size_type = RANDOM_IN_RANGE(0, 2);
+		if (malloc_size_type == 0)
+			malloc_size = RANDOM_IN_RANGE(0, TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE);
+		else if (malloc_size_type == 1)
+			malloc_size = RANDOM_IN_RANGE(TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1, SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE);
+		else
+			malloc_size = RANDOM_IN_RANGE(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1, SIZE_MAX - SIZE_T_SIZE - 1);
+	
+		
 		ptr = malloc(malloc_size);
 		if (malloc_size == 0)
 		{
@@ -37,7 +48,7 @@ int main()
 			if (tiny_malloced_bytes >= heap_g.tiny_zone_size)
 			{
 				number_of_tiny_zones++;
-				tiny_malloced_bytes = 0;
+				tiny_malloced_bytes = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_begin);
 			}
 			ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), number_of_tiny_zones);
 		}
