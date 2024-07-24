@@ -30,7 +30,6 @@ int main()
 			malloc_size = RANDOM_IN_RANGE(TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1, SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE);
 		else
 			malloc_size = RANDOM_IN_RANGE(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1, SIZE_MAX - SIZE_T_SIZE - 1);
-	
 		
 		ptr = malloc(malloc_size);
 		if (malloc_size == 0)

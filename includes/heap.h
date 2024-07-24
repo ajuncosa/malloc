@@ -48,9 +48,9 @@ typedef struct heap_s
 bool init_heap(void);
 zone_header_t *allocate_new_tiny_zone(void);
 zone_header_t *allocate_new_small_zone(void);
-// TODO: add a way of freeing tiny zones
+void free_tiny_zone(zone_header_t *ptr_to_zone);
 void free_small_zone(zone_header_t *ptr_to_zone);
-zone_header_t *get_small_zone(void *chunk_ptr);
+zone_header_t *get_zone(void *chunk_ptr, zone_header_t *zone_list_head, size_t zone_size);
 
 void *allocate_large_chunk(size_t chunk_size);
 void *allocate_small_chunk(size_t chunk_size);
