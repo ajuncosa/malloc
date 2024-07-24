@@ -41,10 +41,11 @@ int main()
 		free(ptr);
 		ptr -= heap_g.tiny_zone_chunk_max_size;
 	}
+
 	free(ptr_last);
 
-	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 2);
-	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE * 2);
+	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 1);
+	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE);
 
 	pass_test(test_name);
 }

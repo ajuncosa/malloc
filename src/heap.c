@@ -97,6 +97,15 @@ void free_small_zone(zone_header_t *ptr_to_zone)
 
 void free_tiny_zone(zone_header_t *ptr_to_zone)
 {
+    size_t *chunk = (size_t *)((uint8_t *)ptr_to_zone + ZONE_HEADER_T_SIZE);
+    size_t number_of_tiny_chunks_per_zone = ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size);
+    for (size_t i = 0; i < number_of_tiny_chunks_per_zone; i++)
+    {
+        if ((*chunk & IN_USE) == 0)
+            remove_chunk_from_list(&heap_g.tiny_bin_head, (free_chunk_header_t*)chunk);
+        chunk = (size_t *)((uint8_t *)chunk + CHUNK_SIZE_WITHOUT_FLAGS(*chunk));
+    }
+
     remove_zone_from_list(&heap_g.tiny_zones_head, ptr_to_zone);
 	if (munmap(ptr_to_zone, heap_g.tiny_zone_size) == -1)
 	{
@@ -270,28 +279,28 @@ void free_small_chunk(size_t *ptr_to_chunk)
 void free_tiny_chunk(size_t *ptr_to_chunk)
 {
 	free_chunk_header_t *freed_chunk = (free_chunk_header_t *)ptr_to_chunk;
+	freed_chunk->size &= ~IN_USE;
+
     // Check if zone is empty and, if it is and there are more zones available,
     // free the zone:
     zone_header_t *chunk_zone = get_zone(ptr_to_chunk, heap_g.tiny_zones_head, heap_g.tiny_zone_size);
-    void *chunk_zone_begin = ((uint8_t *)chunk_zone + ZONE_HEADER_T_SIZE);
-    void *chunk_zone_end = ((uint8_t *)chunk_zone_begin + heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE);
-    size_t free_bytes_in_zone = 0;
-    size_t *chunk = chunk_zone_begin;
-    while ((void *)chunk < chunk_zone_end && (*chunk & IN_USE) == 0)
+    size_t *chunk = (size_t *)((uint8_t *)chunk_zone + ZONE_HEADER_T_SIZE);
+    size_t free_chunks_in_zone = 0;
+    size_t number_of_tiny_chunks_per_zone = ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size);
+    while (free_chunks_in_zone < number_of_tiny_chunks_per_zone && (*chunk & IN_USE) == 0)
     {
-        free_bytes_in_zone += CHUNK_SIZE_WITHOUT_FLAGS(*chunk);
+        free_chunks_in_zone++;
         chunk = (size_t *)((uint8_t *)chunk + CHUNK_SIZE_WITHOUT_FLAGS(*chunk));
     }
 
-    if (free_bytes_in_zone == heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE
-        && heap_g.tiny_bin_head != NULL)
+    if (free_chunks_in_zone == number_of_tiny_chunks_per_zone
+        && (chunk_zone->prev != NULL || chunk_zone->next != NULL))
     {
         free_tiny_zone(chunk_zone);
         return;
     }
 
     add_chunk_to_list_front(&heap_g.tiny_bin_head, freed_chunk);
-	freed_chunk->size &= ~IN_USE;
 }
 
 void *realloc_large_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size)
