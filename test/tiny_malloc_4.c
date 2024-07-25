@@ -36,7 +36,6 @@ int main()
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 2);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), (NUMBER_OF_TINY_CHUNKS_PER_ZONE * 2) - (NUMBER_OF_TINY_CHUNKS_PER_ZONE + 1));
 
-show_alloc_mem();
 	for (size_t i = 0; i < NUMBER_OF_TINY_CHUNKS_PER_ZONE; i++)
 	{
 		free(ptr);

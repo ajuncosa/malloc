@@ -5,9 +5,9 @@ static void print_hex_number(size_t n)
     if (n >= 16)
         print_hex_number(n / 16);
     
-    char a = n % 16;
-    a += a > 9 ? ('a' - 10) : '0';
-    write(1, &a, 1);
+    char c = n % 16;
+    c += c > 9 ? ('a' - 10) : '0';
+    write(1, &c, 1);
 }
 
 void print_address_hex(void *ptr)
@@ -43,42 +43,27 @@ void print_str(char *s)
 		write(1, &s[i], 1);
 }
 
+void print_size(size_t n)
+{
+	if (n / 10 > 0)
+		print_size(n / 10);
+
+	char c = (n % 10) + '0';
+	write(1, &c, 1);
+}
+
 void print_endl(void)
 {
 	write(1, "\n", 1);
 }
-
-/*
-size_t ft_strlen(const char *s)
+void print_chunk_info(void *begin, void *end, size_t bytes)
 {
-	size_t i = 0;
-
-	while (s[i] != '\0')
-		i++;
-
-	return (i);
+    print_str("  ");
+    print_address_hex(begin);
+    print_str(" - ");
+    print_address_hex(end);
+    print_str(": ");
+    print_size(bytes);
+    print_str(" bytes");
+    print_endl();
 }
-
-
-
-
-void	ft_putnbr_fd(int n, int fd)
-{
-	char	c;
-	long	nb;
-
-	nb = n;
-	if (nb < 0)
-	{
-		nb = nb * -1;
-		write(fd, "-", 1);
-	}
-	if (nb / 10 > 0)
-		ft_putnbr_fd(nb / 10, fd);
-	c = (nb % 10) + '0';
-	write(fd, &c, 1);
-}
-
-
-
-*/

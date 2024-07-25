@@ -2,8 +2,6 @@
 #include "test_utils.h"
 #include "malloc.h"
 
-#include <stdio.h>
-
  // 1000 random mallocs no frees
 int main()
 {

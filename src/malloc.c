@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <sys/mman.h>
 #include "malloc.h"
 #include "heap.h"
@@ -90,49 +89,63 @@ void show_alloc_mem(void)
 		print_str("TINY: ");
 		print_address_hex(tiny_zone);
 		print_endl();
+
 		size_t *chunk_ptr = (size_t *)((uint8_t *)tiny_zone + ZONE_HEADER_T_SIZE);
-		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+		size_t *next_chunk = NULL;
+		size_t chunk_data_size = 0;
 		for (size_t i = 0; i < ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size); i++)
     	{
+			next_chunk = (size_t *)((uint8_t *)chunk_ptr + CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr));
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
-				// print_str("  ");
-				// print_address_hex(chunk_ptr);
-				// print_str(" - ");
-				// print_address_hex((uint8_t *)chunk_ptr + chunk_size);
-				// print_str(": ");
-				printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
-				total_bytes += chunk_size;
+				chunk_data_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - SIZE_T_SIZE;
+				print_chunk_info((uint8_t *)chunk_ptr + SIZE_T_SIZE, next_chunk, chunk_data_size);
+				total_bytes += chunk_data_size;
 			}
-        	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
+        	chunk_ptr = next_chunk;
 		}
+		print_endl();
 	}
 
 	for (zone_header_t *small_zone = get_zone_list_last(heap_g.small_zones_head); small_zone != NULL; small_zone = small_zone->prev)
 	{
-		printf("\nSMALL: %p\n", small_zone);
+		print_str("SMALL: ");
+		print_address_hex(small_zone);
+		print_endl();
+
 		size_t *chunk_ptr = (size_t *)((uint8_t *)small_zone + ZONE_HEADER_T_SIZE);
+		size_t *next_chunk = NULL;
+		size_t chunk_data_size;
 		size_t chunk_size;
 		for (size_t i = 0; i < (heap_g.small_zone_size - ZONE_HEADER_T_SIZE); i += chunk_size)
     	{
 			chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+			next_chunk = (size_t *)((uint8_t *)chunk_ptr + chunk_size);
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
-				printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
-				total_bytes += chunk_size;
+				chunk_data_size = chunk_size - SIZE_T_SIZE;
+				print_chunk_info((uint8_t *)chunk_ptr + SIZE_T_SIZE, next_chunk, chunk_data_size);
+				total_bytes += chunk_data_size;
 			}
-        	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
+        	chunk_ptr = next_chunk;
 		}
+		print_endl();
 	}
 
 	for (zone_header_t *large_zone = get_zone_list_last(heap_g.large_zones_head); large_zone != NULL; large_zone = large_zone->prev)
 	{
-		printf("\nLARGE: %p\n", large_zone);
+		print_str("LARGE: ");
+		print_address_hex(large_zone);
+		print_endl();
+
 		size_t *chunk_ptr = (size_t *)((uint8_t *)large_zone + ZONE_HEADER_T_SIZE);
-		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
-		printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
-		total_bytes += chunk_size;
+		size_t chunk_data_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - SIZE_T_SIZE;
+		print_chunk_info((uint8_t *)chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr), chunk_data_size);
+		total_bytes += chunk_data_size;
+		print_endl();
 	}
 
-	printf("\nTotal: %zu bytes\n", total_bytes);
+	print_str("Total: ");
+	print_size(total_bytes);
+	print_str(" bytes\n");
 }

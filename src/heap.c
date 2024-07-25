@@ -1,7 +1,6 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdio.h>
 #include "heap.h"
 #include "utils.h"
 
@@ -87,8 +86,7 @@ zone_header_t *allocate_new_small_zone(void)
 void free_small_zone(zone_header_t *ptr_to_zone)
 {
     remove_zone_from_list(&heap_g.small_zones_head, ptr_to_zone);
-	if (munmap(ptr_to_zone, heap_g.small_zone_size) == -1)
-		printf("Error: munmap failed with errno: %d\n", errno);
+	munmap(ptr_to_zone, heap_g.small_zone_size);
 }
 
 void free_tiny_zone(zone_header_t *ptr_to_zone)
@@ -103,8 +101,7 @@ void free_tiny_zone(zone_header_t *ptr_to_zone)
     }
 
     remove_zone_from_list(&heap_g.tiny_zones_head, ptr_to_zone);
-	if (munmap(ptr_to_zone, heap_g.tiny_zone_size) == -1)
-		printf("Error: munmap failed with errno: %d\n", errno);
+	munmap(ptr_to_zone, heap_g.tiny_zone_size);
 }
 
 zone_header_t *get_zone(void *chunk_ptr, zone_header_t *zone_list_head, size_t zone_size)
@@ -249,8 +246,7 @@ void free_large_chunk(size_t *ptr_to_chunk)
 {
 	zone_header_t *ptr_to_zone = (zone_header_t *)((uint8_t *)ptr_to_chunk - ZONE_HEADER_T_SIZE);
     remove_zone_from_list(&heap_g.large_zones_head, ptr_to_zone);
-	if (munmap(ptr_to_zone, ALIGN(*ptr_to_chunk) + ZONE_HEADER_T_SIZE) == -1)
-		printf("Error: munmap failed with errno: %d\n", errno);
+	munmap(ptr_to_zone, ALIGN(*ptr_to_chunk) + ZONE_HEADER_T_SIZE);
 }
 
 void free_small_chunk(size_t *ptr_to_chunk)
@@ -408,10 +404,8 @@ void add_chunk_to_small_bin(free_chunk_header_t *chunk)
 free_chunk_header_t *coalesce_backward(free_chunk_header_t *chunk)
 {
     if (chunk->size & IN_USE)
-    {
-        printf("you shouldnt be backward-coalescing an in use chunk!");
         return chunk;
-    }
+
     size_t coalesced_chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
     free_chunk_header_t *coalesced_chunk = chunk;
     void *chunk_zone_begin = (uint8_t *)get_zone(chunk, heap_g.small_zones_head, heap_g.small_zone_size) + ZONE_HEADER_T_SIZE;
