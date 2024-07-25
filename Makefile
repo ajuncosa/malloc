@@ -6,11 +6,10 @@ BUILDDIR		:= $(PROJDIR)/build
 OBJSDIR			:= $(BUILDDIR)/objs
 LIBDIR			:= $(BUILDDIR)/lib
 BINDIR			:= $(BUILDDIR)/bin
-LIBFTDIR		:= ${SRCSDIR}/libft
 
 VERBOSE			:= FALSE
 
-SRCS_LIST		:= malloc.c heap.c
+SRCS_LIST		:= malloc.c heap.c utils.c
 OBJS_LIST		:= $(SRCS_LIST:.c=.o)
 TEST_COMMON		:= $(TESTDIR)/test_utils.c
 TEST_SRCS_LIST	:= init.c \
@@ -40,8 +39,6 @@ TEST_BINS_LIST	:= $(TEST_SRCS_LIST:.c=)
 OBJS			:= $(addprefix $(OBJSDIR)/,$(OBJS_LIST))
 TEST_BINS		:= $(addprefix $(BINDIR)/test_,$(TEST_BINS_LIST))
 
-LIBFT		:= $(LIBDIR)/libft.a
-
 ifeq ($(HOSTTYPE),)
 	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
 endif
@@ -52,8 +49,8 @@ NAME		:= $(LIBDIR)/lib$(LIBRARY_NAME).so
 CC			:= gcc
 RM			:= rm -rf
 COMMON		= -Wall -Werror -Wextra
-CFLAGS		?= -fpic -I $(INCLUDESDIR) -I $(LIBFTDIR) $(COMMON)
-LDFLAGS		?= -L $(LIBDIR) -lft $(COMMON)
+CFLAGS		?= -fpic -I $(INCLUDESDIR) -I $(COMMON)
+LDFLAGS		?= -L $(LIBDIR) $(COMMON)
 SANITIZE	= -g3 -fsanitize=address
 
 ifeq ($(VERBOSE),TRUE)
@@ -62,7 +59,7 @@ else
 HIDE = @
 endif
 
-$(NAME):	$(OBJS) $(LIBFT) 
+$(NAME):	$(OBJS)
 			@mkdir -p $(LIBDIR)
 			@echo Linking $@
 			$(HIDE)$(CC) $(LDFLAGS) -shared $^ -o $@
@@ -73,9 +70,6 @@ $(OBJSDIR)/%.o: $(SRCSDIR)/%.c
 			$(HIDE)$(CC) -c $(CFLAGS) $< -o $@
 
 all:		$(NAME)
-
-$(LIBFT):
-			$(HIDE)$(MAKE) -C $(LIBFTDIR)
 
 #FIXME: add headerfiles and test_common to deps
 $(BINDIR)/test_%: $(TESTDIR)/%.c

@@ -2,7 +2,9 @@
 #include <sys/mman.h>
 #include "malloc.h"
 #include "heap.h"
+#include "utils.h"
 
+// TODO: use getrlimit
 void *malloc(size_t size)
 {
 	if (size == 0)
@@ -85,13 +87,20 @@ void show_alloc_mem(void)
 
 	for (zone_header_t *tiny_zone = get_zone_list_last(heap_g.tiny_zones_head); tiny_zone != NULL; tiny_zone = tiny_zone->prev)
 	{
-		printf("TINY: %p\n", tiny_zone);
+		print_str("TINY: ");
+		print_address_hex(tiny_zone);
+		print_endl();
 		size_t *chunk_ptr = (size_t *)((uint8_t *)tiny_zone + ZONE_HEADER_T_SIZE);
 		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
 		for (size_t i = 0; i < ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size); i++)
     	{
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
+				// print_str("  ");
+				// print_address_hex(chunk_ptr);
+				// print_str(" - ");
+				// print_address_hex((uint8_t *)chunk_ptr + chunk_size);
+				// print_str(": ");
 				printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr, (uint8_t *)chunk_ptr + chunk_size, chunk_size);
 				total_bytes += chunk_size;
 			}

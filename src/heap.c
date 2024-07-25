@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include "heap.h"
-#include "libft.h"
+#include "utils.h"
 
 // global
 heap_t heap_g = { .tiny_zone_size = 0,
@@ -88,10 +88,7 @@ void free_small_zone(zone_header_t *ptr_to_zone)
 {
     remove_zone_from_list(&heap_g.small_zones_head, ptr_to_zone);
 	if (munmap(ptr_to_zone, heap_g.small_zone_size) == -1)
-	{
 		printf("Error: munmap failed with errno: %d\n", errno);
-		exit(1);
-	}
 }
 
 void free_tiny_zone(zone_header_t *ptr_to_zone)
@@ -107,10 +104,7 @@ void free_tiny_zone(zone_header_t *ptr_to_zone)
 
     remove_zone_from_list(&heap_g.tiny_zones_head, ptr_to_zone);
 	if (munmap(ptr_to_zone, heap_g.tiny_zone_size) == -1)
-	{
 		printf("Error: munmap failed with errno: %d\n", errno);
-		exit(1);
-	}
 }
 
 zone_header_t *get_zone(void *chunk_ptr, zone_header_t *zone_list_head, size_t zone_size)
@@ -256,10 +250,7 @@ void free_large_chunk(size_t *ptr_to_chunk)
 	zone_header_t *ptr_to_zone = (zone_header_t *)((uint8_t *)ptr_to_chunk - ZONE_HEADER_T_SIZE);
     remove_zone_from_list(&heap_g.large_zones_head, ptr_to_zone);
 	if (munmap(ptr_to_zone, ALIGN(*ptr_to_chunk) + ZONE_HEADER_T_SIZE) == -1)
-	{
 		printf("Error: munmap failed with errno: %d\n", errno);
-		exit(1);
-	}
 }
 
 void free_small_chunk(size_t *ptr_to_chunk)
