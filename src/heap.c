@@ -1,10 +1,9 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdio.h>
 #include "heap.h"
 #include "libft.h"
-
-#include <stdio.h> // FIXME: remove
 
 // global
 heap_t heap_g = { .tiny_zone_size = 0,
@@ -420,13 +419,14 @@ free_chunk_header_t *coalesce_backward(free_chunk_header_t *chunk)
     if (chunk->size & IN_USE)
     {
         printf("you shouldnt be backward-coalescing an in use chunk!");
-        exit(1);
+        return chunk;
     }
     size_t coalesced_chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(chunk->size);
     free_chunk_header_t *coalesced_chunk = chunk;
     void *chunk_zone_begin = (uint8_t *)get_zone(chunk, heap_g.small_zones_head, heap_g.small_zone_size) + ZONE_HEADER_T_SIZE;
 
-    // If PREVIOUS_FREE is not set, the previous chunk footer size_t is not usable (those bytes might be in use by the user payload)
+    // If PREVIOUS_FREE is not set, the previous chunk footer size_t is
+    // not usable (those bytes might be in use by the user payload)
     bool prev_is_free_to_coalesce = ((void *)chunk > chunk_zone_begin) && ((chunk->size & PREVIOUS_FREE) == PREVIOUS_FREE);
     size_t prev_size = *(size_t *)((uint8_t *)chunk - SIZE_T_SIZE);
     size_t *prev_chunk_ptr = (size_t *)((uint8_t *)chunk - prev_size);
