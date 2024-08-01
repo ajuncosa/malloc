@@ -4,4 +4,5 @@ build
 *.so
 *.ansi
 *.ans
-output
+*output*
+a.out
