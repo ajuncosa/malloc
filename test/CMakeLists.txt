@@ -43,7 +43,7 @@ create_test(random_malloc_free)
 function(create_random_test name n_allocations n_reallocations lower_bound upper_bound initial_offset)
     set(commands_file "${name}_commands")
     add_test(NAME ${name}
-        COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/random_tester/run_random_test.sh ${PROJECT_BINARY_DIR}/bin ${commands_file} ${n_allocations} ${n_reallocations} ${lower_bound} ${upper_bound} ${initial_offset})
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/random_tester/run_random_test.sh ${PROJECT_BINARY_DIR}/bin ${commands_file} ${n_allocations} ${n_reallocations} ${lower_bound} ${upper_bound} ${initial_offset})
 endfunction()
 
 add_executable(rand_test ${CMAKE_CURRENT_SOURCE_DIR}/random_tester/rand-tester.c)
