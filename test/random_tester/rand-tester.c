@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include "test_utils.h"
 
 int main(int argc, char **argv) {
 
@@ -20,7 +21,7 @@ int main(int argc, char **argv) {
 
     char parsed_n_allocations[31];
     memset(parsed_n_allocations, 0, 30);
-    //int first_line = read(file, &parsed_n_allocations, 30);
+    read(file, &parsed_n_allocations, 30);
     size_t n_allocations = atoi(parsed_n_allocations);
     char *allocations[n_allocations];
 
@@ -54,6 +55,10 @@ int main(int argc, char **argv) {
             fprintf(stderr, "%c %d %d\n", c, id, size);
             allocations[id] = malloc(size);
 
+            if (size == 0) {
+                continue;
+            }
+
             if (size >= 8) {
                 allocations[id][0] = c;
                 allocations[id][1] = c;
@@ -79,6 +84,10 @@ int main(int argc, char **argv) {
         else if (c == 'R') {
             fprintf(stderr, "%c %d %d\n", c, id, size);
             allocations[id] = realloc(allocations[id], size);
+
+            if (size == 0) {
+                continue;
+            }
             
             if (size >= 8) {
                 allocations[id][0] = c;

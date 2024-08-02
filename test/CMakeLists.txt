@@ -46,7 +46,9 @@ function(create_random_test name n_allocations n_reallocations lower_bound upper
         COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/random_tester/run_random_test.sh ${PROJECT_BINARY_DIR}/bin ${commands_file} ${n_allocations} ${n_reallocations} ${lower_bound} ${upper_bound} ${initial_offset})
 endfunction()
 
-add_executable(rand_test ${CMAKE_CURRENT_SOURCE_DIR}/random_tester/rand-tester.c)
+add_executable(rand_test
+    ${CMAKE_CURRENT_SOURCE_DIR}/random_tester/rand-tester.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.c)
 target_link_libraries(rand_test PRIVATE ${LIBRARY_NAME})
 
 # tiny random tests

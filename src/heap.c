@@ -266,6 +266,7 @@ void free_tiny_chunk(size_t *ptr_to_chunk)
 {
 	free_chunk_header_t *freed_chunk = (free_chunk_header_t *)ptr_to_chunk;
 	freed_chunk->size &= ~IN_USE;
+    add_chunk_to_list_front(&heap_g.tiny_bin_head, freed_chunk);
 
     // Check if zone is empty and, if it is and there are more zones available,
     // free the zone:
@@ -285,14 +286,13 @@ void free_tiny_chunk(size_t *ptr_to_chunk)
         free_tiny_zone(chunk_zone);
         return;
     }
-
-    add_chunk_to_list_front(&heap_g.tiny_bin_head, freed_chunk);
 }
 
 void *realloc_large_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size)
 {
 	void *new_ptr = NULL;
-	size_t copy_size = new_alloc_size < CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) ? new_alloc_size : CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk);
+    size_t old_chunk_data_size = CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) - SIZE_T_SIZE;
+	size_t copy_size = new_alloc_size < old_chunk_data_size ? new_alloc_size : old_chunk_data_size;
 
     if ((new_ptr = malloc(new_alloc_size)) == NULL)
         return NULL;
@@ -306,7 +306,8 @@ void *realloc_large_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
 void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size)
 {
 	void *new_ptr = NULL;
-	size_t copy_size = new_alloc_size < CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) ? new_alloc_size : CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk);
+    size_t old_chunk_data_size = CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) - SIZE_T_SIZE;
+	size_t copy_size = new_alloc_size < old_chunk_data_size ? new_alloc_size : old_chunk_data_size;
 	
     // The chunk resulting from the realloc will be "tiny" or "large"
     if (new_chunk_size <= heap_g.tiny_zone_chunk_max_size
@@ -364,7 +365,8 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
 void *realloc_tiny_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_alloc_size, size_t new_chunk_size)
 {
 	void *new_ptr = NULL;
-	size_t copy_size = new_alloc_size < CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) ? new_alloc_size : CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk);
+    size_t old_chunk_data_size = CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) - SIZE_T_SIZE;
+	size_t copy_size = new_alloc_size < old_chunk_data_size ? new_alloc_size : old_chunk_data_size;
 
     if (new_chunk_size <= heap_g.tiny_zone_chunk_max_size)
         return ptr_to_data;
