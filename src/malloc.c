@@ -5,7 +5,7 @@
 #include "utils.h"
 
 // TODO: use getrlimit
-// TODO: brink back printf :(
+// TODO: bring back printf :(
 void *malloc(size_t size)
 {
 	if (size == 0)
@@ -64,8 +64,8 @@ void *realloc(void *ptr, size_t size)
 	if ((*ptr_to_chunk & IN_USE) == 0)
 		return NULL;
 
-	size_t new_chunk_size = ALIGN(size + SIZE_T_SIZE);
-	if (new_chunk_size == CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk))
+	size_t aligned_new_requested_size = ALIGN(size + SIZE_T_SIZE);
+	if (aligned_new_requested_size == CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk))
 		return ptr;
 
 	/* LARGE REALLOC */
@@ -73,11 +73,11 @@ void *realloc(void *ptr, size_t size)
 		return realloc_large_chunk(ptr, ptr_to_chunk, size);
 	/* TINY REALLOC */
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == heap_g.tiny_zone_chunk_max_size)
-		return realloc_tiny_chunk(ptr, ptr_to_chunk, size, new_chunk_size);
+		return realloc_tiny_chunk(ptr, ptr_to_chunk, size, aligned_new_requested_size);
 	/* SMALL REALLOC */
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > heap_g.tiny_zone_chunk_max_size
 		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= heap_g.small_zone_chunk_max_size)
-		return realloc_small_chunk(ptr, ptr_to_chunk, size, new_chunk_size);
+		return realloc_small_chunk(ptr, ptr_to_chunk, size, aligned_new_requested_size);
 	
 	return NULL;
 }

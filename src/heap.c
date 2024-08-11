@@ -246,7 +246,7 @@ void free_large_chunk(size_t *ptr_to_chunk)
 {
 	zone_header_t *ptr_to_zone = (zone_header_t *)((uint8_t *)ptr_to_chunk - ZONE_HEADER_T_SIZE);
     remove_zone_from_list(&heap_g.large_zones_head, ptr_to_zone);
-	munmap(ptr_to_zone, ALIGN(*ptr_to_chunk) + ZONE_HEADER_T_SIZE);
+	munmap(ptr_to_zone, CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) + ZONE_HEADER_T_SIZE);
 }
 
 void free_small_chunk(size_t *ptr_to_chunk)
