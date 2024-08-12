@@ -73,8 +73,8 @@ create_random_test("test_rand_small_9" 2000 800 113 131056 500)
 create_random_test("test_rand_small_10" 10000 0 113 131056 1000)
 
 # large random tests
-create_random_test("test_rand_large_1" 50 30 131056 1000000 30)
-create_random_test("test_rand_large_2" 1000 300 131056 1000000 300)
+create_random_test("test_rand_large_1" 50 30 131057 1000000 30)
+create_random_test("test_rand_large_2" 1000 300 131057 1000000 300)
 
 # mixed random tests
 create_random_test("test_rand_mix_1" 1000 900 0 1000000 100)

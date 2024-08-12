@@ -19,17 +19,17 @@ void *malloc(size_t size)
 		heap_initialized = true;
 	}
 
-	size_t aligned_requested_size = ALIGN(size + SIZE_T_SIZE);
+	size_t aligned_chunk_size = ALIGN(size + SIZE_T_SIZE);
 
 	/* LARGE ALLOCATION */
-	if (aligned_requested_size > heap_g.small_zone_chunk_max_size)
-		return allocate_large_chunk(aligned_requested_size);
+	if (aligned_chunk_size > heap_g.small_zone_chunk_max_size)
+		return allocate_large_chunk(aligned_chunk_size);
 	/* TINY ALLOCATION */
-	else if (aligned_requested_size <= heap_g.tiny_zone_chunk_max_size)
+	else if (aligned_chunk_size <= heap_g.tiny_zone_chunk_max_size)
 		return allocate_tiny_chunk();
 	/* SMALL ALLOCATION */
 	else
-		return allocate_small_chunk(aligned_requested_size);
+		return allocate_small_chunk(aligned_chunk_size);
 }
 
 void free(void *ptr)
@@ -64,8 +64,8 @@ void *realloc(void *ptr, size_t size)
 	if ((*ptr_to_chunk & IN_USE) == 0)
 		return NULL;
 
-	size_t aligned_new_requested_size = ALIGN(size + SIZE_T_SIZE);
-	if (aligned_new_requested_size == CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk))
+	size_t aligned_new_chunk_size = ALIGN(size + SIZE_T_SIZE);
+	if (aligned_new_chunk_size == CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk))
 		return ptr;
 
 	/* LARGE REALLOC */
@@ -73,11 +73,11 @@ void *realloc(void *ptr, size_t size)
 		return realloc_large_chunk(ptr, ptr_to_chunk, size);
 	/* TINY REALLOC */
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) == heap_g.tiny_zone_chunk_max_size)
-		return realloc_tiny_chunk(ptr, ptr_to_chunk, size, aligned_new_requested_size);
+		return realloc_tiny_chunk(ptr, ptr_to_chunk, size, aligned_new_chunk_size);
 	/* SMALL REALLOC */
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > heap_g.tiny_zone_chunk_max_size
 		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= heap_g.small_zone_chunk_max_size)
-		return realloc_small_chunk(ptr, ptr_to_chunk, size, aligned_new_requested_size);
+		return realloc_small_chunk(ptr, ptr_to_chunk, size, aligned_new_chunk_size);
 	
 	return NULL;
 }

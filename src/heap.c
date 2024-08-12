@@ -214,14 +214,14 @@ void *allocate_small_chunk(size_t chunk_size)
         if (remaining_chunk != NULL)
             replace_chunk_in_list(&heap_g.small_bin_head, new_chunk, remaining_chunk);
         else
-        {
             remove_chunk_from_list(&heap_g.small_bin_head, new_chunk);
-            zone_header_t *new_chunk_zone = get_zone(new_chunk, heap_g.small_zones_head, heap_g.small_zone_size);
-            size_t *next_chunk = (size_t *)((uint8_t *)new_chunk + CHUNK_SIZE_WITHOUT_FLAGS(new_chunk->size));
-            if (next_chunk != (size_t *)((uint8_t *)new_chunk_zone + heap_g.small_zone_size))
-                *next_chunk &= ~PREVIOUS_FREE;
-        }
     }
+
+    zone_header_t *new_chunk_zone = get_zone(new_chunk, heap_g.small_zones_head, heap_g.small_zone_size);
+    size_t *next_chunk = (size_t *)((uint8_t *)new_chunk + CHUNK_SIZE_WITHOUT_FLAGS(new_chunk->size));
+    if (next_chunk != (size_t *)((uint8_t *)new_chunk_zone + heap_g.small_zone_size))
+        *next_chunk &= ~PREVIOUS_FREE;
+
 	new_chunk->size |= IN_USE;
 
 	return (uint8_t *)new_chunk + SIZE_T_SIZE;
@@ -459,7 +459,8 @@ void coalesce_forward(size_t *chunk)
 
 free_chunk_header_t *try_split_chunk(size_t *chunk_ptr, size_t required_size)
 {
-    if ((CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - required_size) <= heap_g.tiny_zone_chunk_max_size)
+    if ((CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) <= heap_g.small_zone_chunk_max_size)
+        && (CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - required_size) <= heap_g.tiny_zone_chunk_max_size)
         return NULL;
 
     // If the remainder of splitting would be big enough to store
