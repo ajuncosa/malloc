@@ -5,9 +5,15 @@
 #include "utils.h"
 
 // TODO: use getrlimit
-// TODO: bring back printf :(
 void *malloc(size_t size)
 {
+	struct rlimit  as;
+	struct rlimit  data;
+	getrlimit(RLIMIT_AS, &as);
+	getrlimit(RLIMIT_DATA, &data);
+	printf("getpagesize: %d\n", getpagesize());
+	printf("getrlimit as: %llu\n", as.rlim_cur);
+	printf("getrlimit data: %llu\n", data.rlim_cur);
 	if (size == 0)
 		return NULL;
 
@@ -104,7 +110,7 @@ void show_alloc_mem(void)
 			}
         	chunk_ptr = next_chunk;
 		}
-		print_endl();
+		printf("\n");
 	}
 
 	for (zone_header_t *small_zone = get_zone_list_last(heap_g.small_zones_head); small_zone != NULL; small_zone = small_zone->prev)
@@ -127,7 +133,7 @@ void show_alloc_mem(void)
 			}
         	chunk_ptr = next_chunk;
 		}
-		print_endl();
+		printf("\n");
 	}
 
 	for (zone_header_t *large_zone = get_zone_list_last(heap_g.large_zones_head); large_zone != NULL; large_zone = large_zone->prev)
@@ -138,7 +144,7 @@ void show_alloc_mem(void)
 		size_t chunk_data_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr) - SIZE_T_SIZE;
 		printf("  %p - %p: %zu bytes\n", (uint8_t *)chunk_ptr + SIZE_T_SIZE, (uint8_t *)chunk_ptr + CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr), chunk_data_size);
 		total_bytes += chunk_data_size;
-		print_endl();
+		printf("\n");
 	}
 
 	printf("Total: %zu bytes\n", total_bytes);

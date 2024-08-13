@@ -15,8 +15,3 @@ void *ft_memcpy(void *dst, const void *src, size_t n)
 
 	return (dst);
 }
-
-void print_endl(void)
-{
-	write(1, "\n", 1);
-}
