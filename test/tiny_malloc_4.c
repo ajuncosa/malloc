@@ -4,8 +4,7 @@
  // NUMBER_OF_TINY_CHUNKS_PER_ZONE + 1 tiny mallocs
 int main()
 {
-	char *test_name = "test_tiny_malloc_4";
-	size_t in_use_tiny_chunk_size = (size_t)(getpagesize() / 128 | IN_USE);
+	size_t in_use_tiny_chunk_size = (size_t)(TINY_ZONE_MAX_CHUNK_SIZE | IN_USE);
 
 	size_t *prev_chunk_begin = NULL;
 	char *ptr = NULL;
@@ -46,6 +45,4 @@ int main()
 
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE);
-
-	pass_test(test_name);
 }

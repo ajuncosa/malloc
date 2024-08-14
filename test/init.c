@@ -3,8 +3,6 @@
 
 int main()
 {
-	char *test_name = "test_init";
-
 	ASSERT_SIZE_EQ(heap_g.tiny_zone_size, 0);
 	ASSERT_SIZE_EQ(heap_g.small_zone_size, 0);
 	ASSERT_SIZE_EQ(heap_g.tiny_zone_chunk_max_size, 0);
@@ -21,6 +19,4 @@ int main()
 	ASSERT_SIZE_EQ(heap_g.small_zone_size % getpagesize(), 0);
 
 	free(ptr);
-
-	pass_test(test_name);
 }

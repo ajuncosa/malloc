@@ -4,13 +4,11 @@
 // 3 tiny mallocs
 int main()
 {
-	char *test_name = "test_tiny_malloc_2";
-
 	char *ptr1 = malloc(1);
 	ASSERT_POINTER_NE(ptr1, NULL);
-	char *ptr2 = malloc(10);
+	char *ptr2 = malloc(5);
 	ASSERT_POINTER_NE(ptr2, NULL);
-	char *ptr3 = malloc(100);
+	char *ptr3 = malloc(TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE);
 	ASSERT_POINTER_NE(ptr3, NULL);
 
 	ASSERT_POINTER_NE(heap_g.tiny_zones_head, NULL);
@@ -44,6 +42,4 @@ int main()
 
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE);
-
-	pass_test(test_name);
 }

@@ -4,7 +4,6 @@
 // MIN_NUMBER_OF_SMALL_CHUNKS_PER_ZONE + 1 small mallocs
 int main()
 {
-	char *test_name = "test_small_malloc_4";
     size_t malloc_size = SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE;
 
 	size_t *prev_chunk_begin = NULL;
@@ -77,6 +76,4 @@ int main()
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_bin_head), 1);
 	ASSERT_SIZE_EQ(CHUNK_SIZE_WITHOUT_FLAGS(heap_g.small_bin_head->size), heap_g.small_zone_size - ZONE_HEADER_T_SIZE - (ALIGN(malloc_size - 100 + SIZE_T_SIZE)));
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_unsorted_list_head), 1);
-
-	pass_test(test_name);
 }

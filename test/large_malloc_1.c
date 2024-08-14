@@ -4,8 +4,6 @@
  // malloc(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1)
 int main()
 {
-	char *test_name = "test_large_malloc_1";
-
 	char *ptr = malloc(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1);
 	ASSERT_POINTER_NE(ptr, NULL);
 
@@ -21,6 +19,4 @@ int main()
 	free(ptr);
 
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 0);
-
-	pass_test(test_name);
 }

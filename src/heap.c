@@ -1,6 +1,7 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdint.h>
 #include "heap.h"
 #include "utils.h"
 
@@ -222,9 +223,9 @@ void *allocate_small_chunk(size_t chunk_size)
     if (next_chunk != (size_t *)((uint8_t *)new_chunk_zone + heap_g.small_zone_size))
         *next_chunk &= ~PREVIOUS_FREE;
 
-	new_chunk->size |= IN_USE;
+    new_chunk->size |= IN_USE;
 
-	return (uint8_t *)new_chunk + SIZE_T_SIZE;
+    return (uint8_t *)new_chunk + SIZE_T_SIZE;
 }
 
 void *allocate_tiny_chunk(void)

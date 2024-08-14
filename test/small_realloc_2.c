@@ -4,7 +4,6 @@
 // small to large
 int main()
 {
-	char *test_name = "test_small_realloc_2";
     size_t malloc_size = TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1;
 
 	char *ptr = malloc(malloc_size);
@@ -34,6 +33,4 @@ int main()
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_bin_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_unsorted_list_head), 1);
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 0);
-
-	pass_test(test_name);
 }

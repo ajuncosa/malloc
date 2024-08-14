@@ -4,8 +4,6 @@
 // malloc(1)
 int main()
 {
-	char *test_name = "test_tiny_malloc_1";
-
 	char *ptr = malloc(1);
 	ASSERT_POINTER_NE(ptr, NULL);
 
@@ -23,6 +21,4 @@ int main()
 
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE);
-
-	pass_test(test_name);
 }

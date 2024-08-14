@@ -4,7 +4,6 @@
  // 3 large mallocs
 int main()
 {
-	char *test_name = "test_large_malloc_2";
     size_t malloc_1_size = SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1;
     size_t malloc_2_size = 500000;
     size_t malloc_3_size = 1000000;
@@ -43,6 +42,4 @@ int main()
 	free(ptr3);
 
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 0);
-
-	pass_test(test_name);
 }

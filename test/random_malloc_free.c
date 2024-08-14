@@ -1,13 +1,13 @@
 #include <time.h>
+#include <stdint.h>
 #include "test_utils.h"
 #include "malloc.h"
 
  // 1000 random mallocs with frees
 int main()
 {
-	char *test_name = "test_random_malloc_free";
 	srand(time(NULL));
-	size_t in_use_tiny_chunk_size = (size_t)(getpagesize() / 128 | IN_USE);
+	size_t in_use_tiny_chunk_size = (size_t)(TINY_ZONE_MAX_CHUNK_SIZE | IN_USE);
 
 	size_t malloc_size = 0;
 	uint8_t malloc_size_type = 0; // to distribute between tiny, small and large
@@ -64,6 +64,4 @@ int main()
 		ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.small_unsorted_list_head), 1);
 	}
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 0);
-
-	pass_test(test_name);
 }

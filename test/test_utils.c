@@ -1,60 +1,103 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdint.h>
 #include "test_utils.h"
+#include "utils.h"
 
-void pass_test(char *test_name)
-{
-	printf(GREEN "[TEST OK] %s\n" NO_COLOR, test_name);
-}
-
-void fail_test(char *test_name, char *reason)
-{
-	printf(RED "[TEST KO] %s: %s\n" NO_COLOR, test_name, reason);
-	freopen("test_output.ansi", "w", stdout);
-	visualise_memory();
-	fclose(stdout);
-	freopen("/dev/tty", "w", stdout);
-	exit(1);
-}
-
-void assert_char_eq(char *test_name, char actual, char expected, char *file_name, int line_n)
+void assert_char_eq(char actual, char expected, char *file_name, int line_n)
 {
 	if (actual != expected)
-		FAIL_TEST_AT(test_name, file_name, line_n, "Char equality assertion failed (expected: %c, actual: %c)", expected, actual);
+	{
+		PRINT_FAIL_TEST_AT(file_name, line_n);
+		print_str(RED ": Char equality assertion failed (expected: ");
+		ft_putchar(expected);
+		print_str(", actual: ");
+		ft_putchar(actual);
+		print_str(")" NO_COLOR);
+		print_endl();
+		exit(1);
+	}
 }
 
-void assert_size_eq(char *test_name, size_t actual, size_t expected, char *file_name, int line_n)
+void assert_size_eq(size_t actual, size_t expected, char *file_name, int line_n)
 {
 	if (actual != expected)
-		FAIL_TEST_AT(test_name, file_name, line_n, "Size equality assertion failed (expected: %zu, actual: %zu)", expected, actual);
+	{
+		PRINT_FAIL_TEST_AT(file_name, line_n);
+		print_str(RED ": Size equality assertion failed (expected: ");
+		print_size(expected);
+		print_str(", actual: ");
+		print_size(actual);
+		print_str(")" NO_COLOR);
+		print_endl();
+		exit(1);
+	}
 }
 
-void assert_size_lt(char *test_name, size_t actual, size_t expected, char *file_name, int line_n)
+void assert_size_lt(size_t actual, size_t expected, char *file_name, int line_n)
 {
 	if (actual >= expected)
-		FAIL_TEST_AT(test_name, file_name, line_n, "Size inequality assertion failed (expected: <%zu, actual: %zu)", expected, actual);
+	{
+		PRINT_FAIL_TEST_AT(file_name, line_n);
+		print_str(RED ": Size inequality assertion failed (expected: <");
+		print_size(expected);
+		print_str(", actual: ");
+		print_size(actual);
+		print_str(")" NO_COLOR);
+		print_endl();
+		exit(1);
+	}
 }
 
-void assert_pointer_eq(char *test_name, void *actual, void *expected, char *file_name, int line_n)
+void assert_pointer_eq(void *actual, void *expected, char *file_name, int line_n)
 {
 	if (actual != expected)
-		FAIL_TEST_AT(test_name, file_name, line_n, "Pointer equality assertion failed (expected: %p, actual: %p)", expected, actual);
+	{
+		PRINT_FAIL_TEST_AT(file_name, line_n);
+		print_str(RED ": Pointer equality assertion failed (expected: ");
+		print_address_hex(expected);
+		print_str(", actual: ");
+		print_address_hex(actual);
+		print_str(")" NO_COLOR);
+		print_endl();
+		exit(1);
+	}
 }
 
-void assert_pointer_ne(char *test_name, void *actual, void *expected, char *file_name, int line_n)
+void assert_pointer_ne(void *actual, void *expected, char *file_name, int line_n)
 {
 	if (actual == expected)
-		FAIL_TEST_AT(test_name, file_name, line_n, "Pointer inequality assertion failed: %p and %p are equal", expected, actual);
+	{
+		PRINT_FAIL_TEST_AT(file_name, line_n);
+		print_str(RED ": Pointer inequality assertion failed: ");
+		print_address_hex(expected);
+		print_str(" and ");
+		print_address_hex(actual);
+		print_str(" are equal" NO_COLOR);
+		print_endl();
+		exit(1);
+	}
 }
 
-void assert_no_chunk_overlap(char *test_name, size_t *chunk_1_begin, size_t *chunk_2_begin, char *file_name, int line_n)
+void assert_no_chunk_overlap(size_t *chunk_1_begin, size_t *chunk_2_begin, char *file_name, int line_n)
 {
 	if (overlaps(chunk_1_begin, chunk_2_begin))
 	{
 		size_t *chunk_1_end = (size_t *)((char *)chunk_1_begin + CHUNK_SIZE_WITHOUT_FLAGS(*chunk_1_begin));
 		size_t *chunk_2_end = (size_t *)((char *)chunk_2_begin + CHUNK_SIZE_WITHOUT_FLAGS(*chunk_2_begin));
-		FAIL_TEST_AT(test_name, file_name, line_n, "Memory at [%p - %p] and [%p - %p] is overlapping", chunk_1_begin, chunk_1_end, chunk_2_begin, chunk_2_end);
+		PRINT_FAIL_TEST_AT(file_name, line_n);
+		print_str(RED ": Memory at [");
+		print_address_hex(chunk_1_begin);
+		print_str(" - ");
+		print_address_hex(chunk_1_end);
+		print_str("] and [");
+		print_address_hex(chunk_2_begin);
+		print_str(" - ");
+		print_address_hex(chunk_2_end);
+		print_str("] is overlapping" NO_COLOR);
+		print_endl();
+		exit(1);
 	}
 }
 
@@ -99,47 +142,6 @@ bool overlaps(void *ptr1, void *ptr2)
 		return true;
 
 	return false;
-}
-
-void hexdump(void *mem, unsigned int len)
-{
-    unsigned int i, j, k;
-    
-    for(i = 0; i < len + ((len % 16) ? (16 - len % 16) : 0); i++) {
-        if(i % 16 == 0) {
-            printf("0x%06x: ", i);
-            k = 0;
-        }
-
-        if (k == 4 || k == 12)
-            printf(" ");
-
-        if (k == 8)
-            printf("   ");
-        k++;
-
-        if(i < len) {
-            printf("%02x ", 0xFF & ((char*)mem)[i]);
-        }
-        else {
-            printf("   ");
-        }
-        
-        if(i % 16 == (16 - 1)) {
-            for(j = i - (16 - 1); j <= i; j++) {
-                if(j >= len) {
-                    putchar(' ');
-                }
-                else if(isprint(((char*)mem)[j])) {
-                    putchar(0xFF & ((char*)mem)[j]);        
-                }
-                else {
-                    putchar('.');
-                }
-            }
-            putchar('\n');
-        }
-    }
 }
 
 void visualise_memory(void)

@@ -1,13 +1,13 @@
 #include <time.h>
+#include <stdint.h>
 #include "test_utils.h"
 #include "malloc.h"
 
  // 1000 random mallocs no frees
 int main()
 {
-	char *test_name = "test_random_malloc";
 	srand(time(NULL));
-	size_t in_use_tiny_chunk_size = (size_t)(getpagesize() / 128 | IN_USE);
+	size_t in_use_tiny_chunk_size = (size_t)(TINY_ZONE_MAX_CHUNK_SIZE | IN_USE);
 	size_t tiny_malloced_bytes = 0;
 	size_t small_malloced_bytes = 0;
 	size_t number_of_tiny_zones = 1;
@@ -71,6 +71,4 @@ int main()
 		ASSERT_NO_CHUNK_OVERLAP(chunk_begin, prev_chunk_begin);
 		prev_chunk_begin = chunk_begin;
 	}
-
-	pass_test(test_name);
 }
