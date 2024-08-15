@@ -4,18 +4,19 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include "test_utils.h"
+#include "utils.h"
 
 int main(int argc, char **argv) {
 
     if (argc != 2) {
-        fprintf(stderr, "invalid arguments :(\n");
+        print_str("invalid arguments :(\n");
         return 1;
     }
     
     int file = open(argv[1], 0);
 
     if (file == -1) {
-        fprintf(stderr, "Invalid file");
+        print_str("invalid file\n");
         exit(1);
     }
 
@@ -52,7 +53,12 @@ int main(int argc, char **argv) {
         int size = atoi(s_size);
 
         if (c == 'M') {
-            fprintf(stderr, "%c %d %d\n", c, id, size);
+            ft_putchar(c);
+            ft_putchar(' ');
+            print_size(id);
+            ft_putchar(' ');
+            print_size(size);
+            print_endl();
             allocations[id] = malloc(size);
 
             if (size == 0) {
@@ -82,7 +88,13 @@ int main(int argc, char **argv) {
             }
         }
         else if (c == 'R') {
-            fprintf(stderr, "%c %d %d\n", c, id, size);
+            ft_putchar(c);
+            ft_putchar(' ');
+            print_size(id);
+            ft_putchar(' ');
+            print_size(size);
+            print_endl();
+
             allocations[id] = realloc(allocations[id], size);
 
             if (size == 0) {
@@ -112,7 +124,11 @@ int main(int argc, char **argv) {
             }
         }
         else if (c == 'F') {
-            fprintf(stderr, "%c %d\n", c, id);
+            ft_putchar(c);
+            ft_putchar(' ');
+            print_size(id);
+            print_endl();
+
             free(allocations[id]);
         }
 

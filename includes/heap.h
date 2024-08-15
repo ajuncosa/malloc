@@ -9,7 +9,7 @@
 #define PREVIOUS_FREE                   0x02 // whether the previous chunk is available for coalescing
 //#define ARENA                         0x04
 
-#define SIZE_T_SIZE	                    ALIGN(sizeof(size_t)) // in-use chunk header metadata size
+#define SIZE_T_SIZE	                    sizeof(size_t) // in-use chunk header metadata size
 #define MIN_FREE_CHUNK_SIZE 		    ALIGN(sizeof(free_chunk_header_t)) // free chunk header metadata size
 #define ZONE_HEADER_T_SIZE	            ALIGN(sizeof(zone_header_t)) // zone header metadata size
 #define CHUNK_SIZE_WITHOUT_FLAGS(size)  (size & ~7u)

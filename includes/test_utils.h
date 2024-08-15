@@ -19,10 +19,10 @@
 #define MIN_NUMBER_OF_SMALL_CHUNKS_PER_ZONE ((SMALL_ZONE_SIZE - ZONE_HEADER_T_SIZE) / SMALL_ZONE_MAX_CHUNK_SIZE)
 
 #define PRINT_FAIL_TEST_AT(file_name, line) {   \
-	print_str(RED "at ");                \
+	print_str(RED "at ");                       \
     print_str(file_name);                       \
     print_str(":");                             \
-    print_size(line);                            \
+    print_size(line);                           \
 	print_str(NO_COLOR); }
 
 #define ASSERT_CHAR_EQ(actual, expected) assert_char_eq(actual, expected, __FILE__, __LINE__)
@@ -46,7 +46,6 @@ void assert_pointer_eq(void *actual, void *expected, char *file_name, int line_n
 void assert_pointer_ne(void *actual, void *expected, char *file_name, int line_n);
 void assert_no_chunk_overlap(size_t *chunk_1_begin, size_t *chunk_2_begin, char *file_name, int line_n);
 
-void hexdump(void *mem, unsigned int len);
 void visualise_memory(void);
 
 #endif

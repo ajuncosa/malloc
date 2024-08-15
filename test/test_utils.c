@@ -148,40 +148,74 @@ void visualise_memory(void)
 {
 	for (zone_header_t *tiny_zone = heap_g.tiny_zones_head; tiny_zone != NULL; tiny_zone = tiny_zone->next)
 	{
-		printf("| %p " GREEN "tiny zone header (%zu bytes): %p %p" NO_COLOR " |\n",
-			tiny_zone,
-			ZONE_HEADER_T_SIZE,
-			tiny_zone->prev,
-			tiny_zone->next);
+		print_str("| ");
+		print_address_hex(tiny_zone);
+		print_str(GREEN " tiny zone header (");
+		print_size(ZONE_HEADER_T_SIZE);
+		print_str(" bytes): ");
+		print_address_hex(tiny_zone->prev);
+		print_str(" ");
+		print_address_hex(tiny_zone->next);
+		print_str(NO_COLOR " |\n");
 
 		size_t *chunk_ptr = (size_t *)((uint8_t *)tiny_zone + ZONE_HEADER_T_SIZE);
-		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+		//size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
 		for (size_t i = 0; i < ((heap_g.tiny_zone_size - ZONE_HEADER_T_SIZE) / heap_g.tiny_zone_chunk_max_size); i++)
     	{
+			size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
+			uint8_t in_use_bit_flag = (uint8_t)(*chunk_ptr & IN_USE);
+			uint8_t prev_free_bit_flag = (uint8_t)(*chunk_ptr & PREVIOUS_FREE);
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
-				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d" NO_COLOR " | " MAGENTA "in use body (%zu bytes)" NO_COLOR " |\n" ,
-					chunk_ptr, SIZE_T_SIZE, chunk_size, (uint8_t)(*chunk_ptr & PREVIOUS_FREE), (uint8_t)(*chunk_ptr & IN_USE),
-					chunk_size - SIZE_T_SIZE);
+				print_str("| ");
+				print_address_hex(chunk_ptr);
+				print_str(BLUE " chunk header (");
+				print_size(SIZE_T_SIZE);
+				print_str(" bytes): ");
+				print_size(chunk_size);
+				print_str(" ");
+				print_size(prev_free_bit_flag);
+				print_size(in_use_bit_flag);
+				print_str(NO_COLOR " | ");
+				print_str(MAGENTA "in use body (");
+				print_size(chunk_size - SIZE_T_SIZE);
+				print_str(" bytes)" NO_COLOR " |\n");
 			}
 			else
 			{
 				free_chunk_header_t *free_chunk_ptr = (free_chunk_header_t *)chunk_ptr;
-    			size_t *footer_size = (size_t *)((uint8_t *)chunk_ptr + chunk_size - SIZE_T_SIZE);
-				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d %p %p" NO_COLOR " | " YELLOW "free bytes (%zu bytes)" NO_COLOR " | " BLUE "size (%zu bytes): %zu" NO_COLOR " |\n" ,
-					chunk_ptr, sizeof(free_chunk_header_t), chunk_size, (uint8_t)(*chunk_ptr & PREVIOUS_FREE), (uint8_t)(*chunk_ptr & IN_USE), free_chunk_ptr->prev, free_chunk_ptr->next,
-					chunk_size - sizeof(free_chunk_header_t) - SIZE_T_SIZE, SIZE_T_SIZE, *footer_size);
+				print_str("| ");
+				print_address_hex(chunk_ptr);
+				print_str(BLUE " chunk header (");
+				print_size(sizeof(free_chunk_header_t));
+				print_str(" bytes): ");
+				print_size(chunk_size);
+				print_str(" ");
+				print_size(prev_free_bit_flag);
+				print_size(in_use_bit_flag);
+				print_str(" ");
+				print_address_hex(free_chunk_ptr->prev);
+				print_str(" ");
+				print_address_hex(free_chunk_ptr->next);
+				print_str(NO_COLOR " | ");
+				print_str(YELLOW "free bytes (");
+				print_size(chunk_size - sizeof(free_chunk_header_t));
+				print_str(" bytes)" NO_COLOR " |\n");
 			}
         	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
 		}
 	}
 	for (zone_header_t *small_zone = heap_g.small_zones_head; small_zone != NULL; small_zone = small_zone->next)
 	{
-		printf("| %p " GREEN "small zone header (%zu bytes): %p %p" NO_COLOR " |\n",
-			small_zone,
-			ZONE_HEADER_T_SIZE,
-			small_zone->prev,
-			small_zone->next);
+		print_str("| ");
+		print_address_hex(small_zone);
+		print_str(GREEN " small zone header (");
+		print_size(ZONE_HEADER_T_SIZE);
+		print_str(" bytes): ");
+		print_address_hex(small_zone->prev);
+		print_str(" ");
+		print_address_hex(small_zone->next);
+		print_str(NO_COLOR " |\n");
 
 		size_t *chunk_ptr = (size_t *)((uint8_t *)small_zone + ZONE_HEADER_T_SIZE);
 		size_t chunk_size;
@@ -193,19 +227,45 @@ void visualise_memory(void)
 			if ((*chunk_ptr & IN_USE) == IN_USE)
 			{
 				size_t in_use_bytes = chunk_size - SIZE_T_SIZE;
-				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d" NO_COLOR " | " MAGENTA "in use body (%zu bytes)" NO_COLOR " |\n" ,
-					chunk_ptr, SIZE_T_SIZE, chunk_size, prev_free_bit_flag, in_use_bit_flag, // chunk header
-					in_use_bytes); // chunk data
+				print_str("| ");
+				print_address_hex(chunk_ptr);
+				print_str(BLUE " chunk header (");
+				print_size(SIZE_T_SIZE);
+				print_str(" bytes): ");
+				print_size(chunk_size);
+				print_str(" ");
+				print_size(prev_free_bit_flag);
+				print_size(in_use_bit_flag);
+				print_str(NO_COLOR " | ");
+				print_str(MAGENTA "in use body (");
+				print_size(in_use_bytes);
+				print_str(" bytes)" NO_COLOR " |\n");
 			}
 			else
 			{
 				free_chunk_header_t *free_chunk_ptr = (free_chunk_header_t *)chunk_ptr;
     			size_t *footer_size = (size_t *)((uint8_t *)chunk_ptr + chunk_size - SIZE_T_SIZE);
 				size_t free_bytes = chunk_size - sizeof(free_chunk_header_t) - SIZE_T_SIZE;
-				printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d %p %p" NO_COLOR " | " YELLOW "free bytes (%zu bytes)" NO_COLOR " | " BLUE "size (%zu bytes): %zu" NO_COLOR " |\n" ,
-					chunk_ptr, sizeof(free_chunk_header_t), chunk_size, prev_free_bit_flag, in_use_bit_flag, free_chunk_ptr->prev, free_chunk_ptr->next, // chunk header
-					free_bytes, // free space
-					SIZE_T_SIZE, *footer_size); // footer size
+				print_str("| ");
+				print_address_hex(chunk_ptr);
+				print_str(BLUE " chunk header (");
+				print_size(sizeof(free_chunk_header_t));
+				print_str(" bytes): ");
+				print_size(chunk_size);
+				print_str(" ");
+				print_size(prev_free_bit_flag);
+				print_size(in_use_bit_flag);
+				print_str(" ");
+				print_address_hex(free_chunk_ptr->prev);
+				print_str(" ");
+				print_address_hex(free_chunk_ptr->next);
+				print_str(NO_COLOR " | " YELLOW "free bytes (");
+				print_size(free_bytes);
+				print_str(" bytes)" NO_COLOR " | " BLUE "size (");
+				print_size(SIZE_T_SIZE);
+				print_str(" bytes): ");
+				print_size(*footer_size);
+				print_str(NO_COLOR " |\n");
 			}
         	chunk_ptr = (size_t *)((uint8_t *)(chunk_ptr) + chunk_size);
 		}
@@ -213,11 +273,16 @@ void visualise_memory(void)
 
 	for (zone_header_t *large_zone = heap_g.large_zones_head; large_zone != NULL; large_zone = large_zone->next)
 	{
-		printf("| %p " GREEN "large zone header (%zu bytes): %p %p" NO_COLOR " |\n",
-			large_zone,
-			ZONE_HEADER_T_SIZE,
-			large_zone->prev,
-			large_zone->next);
+		print_str("| ");
+		print_address_hex(large_zone);
+		print_str(GREEN " large zone header (");
+		print_size(ZONE_HEADER_T_SIZE);
+		print_str(" bytes): ");
+		print_address_hex(large_zone->prev);
+		print_str(" ");
+		print_address_hex(large_zone->next);
+		print_str(NO_COLOR " |\n");
+
 		size_t *chunk_ptr = (size_t *)((uint8_t *)large_zone + ZONE_HEADER_T_SIZE);
 		size_t chunk_size = CHUNK_SIZE_WITHOUT_FLAGS(*chunk_ptr);
 		uint8_t in_use_bit_flag = (uint8_t)(*chunk_ptr & IN_USE);
@@ -225,17 +290,39 @@ void visualise_memory(void)
 		if ((*chunk_ptr & IN_USE) == IN_USE)
 		{
 			size_t in_use_bytes = chunk_size - SIZE_T_SIZE;
-			printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d" NO_COLOR " | " MAGENTA "in use body (%zu bytes)" NO_COLOR " |\n" ,
-				chunk_ptr, SIZE_T_SIZE, chunk_size, prev_free_bit_flag, in_use_bit_flag, // chunk header
-				in_use_bytes); // chunk data
+			print_str("| ");
+			print_address_hex(chunk_ptr);
+			print_str(BLUE " chunk header (");
+			print_size(SIZE_T_SIZE);
+			print_str(" bytes): ");
+			print_size(chunk_size);
+			print_str(" ");
+			print_size(prev_free_bit_flag);
+			print_size(in_use_bit_flag);
+			print_str(NO_COLOR " | " MAGENTA "in use body (");
+			print_size(in_use_bytes);
+			print_str(" bytes)" NO_COLOR " |\n");
 		}
 		else // should never go in here
 		{
 			free_chunk_header_t *free_chunk_ptr = (free_chunk_header_t *)chunk_ptr;
 			size_t free_bytes = chunk_size - sizeof(free_chunk_header_t) - SIZE_T_SIZE;
-			printf("| %p " BLUE "chunk header (%zu bytes): %zu %d%d %p %p" NO_COLOR " | " YELLOW "free bytes (%zu bytes)" NO_COLOR " |\n" ,
-				chunk_ptr, sizeof(free_chunk_header_t), chunk_size, prev_free_bit_flag, in_use_bit_flag, free_chunk_ptr->prev, free_chunk_ptr->next, // chunk header
-				free_bytes); // free space
+			print_str("| ");
+			print_address_hex(chunk_ptr);
+			print_str(BLUE " chunk header (");
+			print_size(sizeof(free_chunk_header_t));
+			print_str(" bytes): ");
+			print_size(chunk_size);
+			print_str(" ");
+			print_size(prev_free_bit_flag);
+			print_size(in_use_bit_flag);
+			print_str(" ");
+			print_address_hex(free_chunk_ptr->prev);
+			print_str(" ");
+			print_address_hex(free_chunk_ptr->next);
+			print_str(NO_COLOR " | " YELLOW "free bytes (");
+			print_size(free_bytes);
+			print_str(" bytes)" NO_COLOR " |\n");
 		}
 	}
 }
