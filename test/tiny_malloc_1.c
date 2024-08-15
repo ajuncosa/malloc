@@ -6,6 +6,7 @@ int main()
 {
 	char *ptr = malloc(1);
 	ASSERT_POINTER_NE(ptr, NULL);
+	ASSERT_ALIGNMENT(ptr);
 
 	ASSERT_POINTER_NE(heap_g.tiny_zones_head, NULL);
 	ASSERT_POINTER_EQ(heap_g.small_zones_head, NULL);

@@ -37,6 +37,7 @@ int main()
 		}
 
 		ASSERT_POINTER_NE(ptr, NULL);
+		ASSERT_ALIGNMENT(ptr);
 		chunk_begin = (size_t *)(ptr - SIZE_T_SIZE);
 		if (malloc_size <= TINY_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE)
 		{

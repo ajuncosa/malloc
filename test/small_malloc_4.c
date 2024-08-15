@@ -12,6 +12,7 @@ int main()
 	{
 		ptr = malloc(malloc_size);
 		ASSERT_POINTER_NE(ptr, NULL);
+		ASSERT_ALIGNMENT(ptr);
 
 		size_t *chunk_begin = (size_t *)((char *)ptr - SIZE_T_SIZE);
 		ASSERT_SIZE_EQ(*chunk_begin, (ALIGN(malloc_size + SIZE_T_SIZE) | IN_USE));
@@ -20,6 +21,7 @@ int main()
 	}
 	char *ptr_last = malloc(malloc_size); // extra one (in a separate zone)
 	ASSERT_POINTER_NE(ptr_last, NULL);
+	ASSERT_ALIGNMENT(ptr_last);
 
 	size_t *chunk_begin = (size_t *)((char *)ptr_last - SIZE_T_SIZE);
 	ASSERT_SIZE_EQ(*chunk_begin, (ALIGN(malloc_size + SIZE_T_SIZE) | IN_USE));

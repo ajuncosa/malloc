@@ -51,10 +51,10 @@ add_executable(rand_test
     ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.c)
 target_link_libraries(rand_test PRIVATE ${LIBRARY_NAME})
 
-set(MAX_TINY_CHUNK_SIZE 24)
-set(MIN_SMALL_CHUNK_SIZE 25)
-set(MAX_SMALL_CHUNK_SIZE 32768)
-set(MIN_LARGE_CHUNK_SIZE 32769)
+set(MAX_TINY_CHUNK_SIZE 15)
+set(MIN_SMALL_CHUNK_SIZE 17)
+set(MAX_SMALL_CHUNK_SIZE 32752)
+set(MIN_LARGE_CHUNK_SIZE 32753)
 
 # tiny random tests
 create_random_test("test_rand_tiny_1" 50 0 0 ${MAX_TINY_CHUNK_SIZE} 20)

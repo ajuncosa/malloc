@@ -8,6 +8,7 @@ int main()
 
 	char *ptr = malloc(malloc_size);
 	ASSERT_POINTER_NE(ptr, NULL);
+	ASSERT_ALIGNMENT(ptr);
 	for(size_t i = 0; i < malloc_size; i++)
 		ptr[i] = 'a' + i % 26;
 
@@ -20,6 +21,7 @@ int main()
     char *new_ptr = realloc(ptr, 10);
 	ASSERT_POINTER_NE(new_ptr, NULL);
 	ASSERT_POINTER_NE(new_ptr, ptr);
+	ASSERT_ALIGNMENT(new_ptr);
 	for(size_t i = 0; i < 10; i++)
 		ASSERT_CHAR_EQ(new_ptr[i], 'a' + i % 26);
 

@@ -101,6 +101,19 @@ void assert_no_chunk_overlap(size_t *chunk_1_begin, size_t *chunk_2_begin, char 
 	}
 }
 
+void assert_alignment(void *ptr, char *file_name, int line_n)
+{
+	if ((((unsigned long) (ptr)) % BYTE_ALIGNMENT) != 0)
+	{
+		PRINT_FAIL_TEST_AT(file_name, line_n);
+		print_str(RED ": pointer ");
+		print_address_hex(ptr);
+		print_str("is not aligned" NO_COLOR);
+		print_endl();
+		exit(1);
+	}
+}
+
 size_t zone_list_len(zone_header_t *list)
 {
 	size_t len = 0;

@@ -10,12 +10,15 @@ int main()
 
 	char *ptr1 = malloc(malloc_1_size);
 	ASSERT_POINTER_NE(ptr1, NULL);
+	ASSERT_ALIGNMENT(ptr1);
 
 	char *ptr2 = malloc(malloc_2_size);
 	ASSERT_POINTER_NE(ptr2, NULL);
+	ASSERT_ALIGNMENT(ptr2);
 
     char *ptr3 = malloc(malloc_3_size);
 	ASSERT_POINTER_NE(ptr3, NULL);
+	ASSERT_ALIGNMENT(ptr3);
 
 	ASSERT_POINTER_EQ(heap_g.tiny_zones_head, NULL);
 	ASSERT_POINTER_NE(heap_g.small_zones_head, NULL);

@@ -12,6 +12,7 @@ int main()
 	{
 		ptr = malloc(malloc_size);
 		ASSERT_POINTER_NE(ptr, NULL);
+		ASSERT_ALIGNMENT(ptr);
 
 		size_t *chunk_begin = (size_t *)((char *)ptr - SIZE_T_SIZE);
 		ASSERT_SIZE_EQ(*chunk_begin, (ALIGN(malloc_size + SIZE_T_SIZE) | IN_USE));

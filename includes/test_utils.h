@@ -31,6 +31,7 @@
 #define ASSERT_POINTER_EQ(actual, expected) assert_pointer_eq(actual, expected, __FILE__, __LINE__)
 #define ASSERT_POINTER_NE(actual, expected) assert_pointer_ne(actual, expected, __FILE__, __LINE__)
 #define ASSERT_NO_CHUNK_OVERLAP(chunk_1_begin, chunk_2_begin) assert_no_chunk_overlap(chunk_1_begin, chunk_2_begin, __FILE__, __LINE__)
+#define ASSERT_ALIGNMENT(ptr) assert_alignment(ptr, __FILE__, __LINE__)
 
 #define RANDOM_IN_RANGE(min, max) (rand() % (max + 1 - min) + min)
 
@@ -45,6 +46,7 @@ void assert_size_lt(size_t actual, size_t expected, char *file_name, int line_n)
 void assert_pointer_eq(void *actual, void *expected, char *file_name, int line_n);
 void assert_pointer_ne(void *actual, void *expected, char *file_name, int line_n);
 void assert_no_chunk_overlap(size_t *chunk_1_begin, size_t *chunk_2_begin, char *file_name, int line_n);
+void assert_alignment(void *ptr, char *file_name, int line_n);
 
 void visualise_memory(void);
 
