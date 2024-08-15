@@ -21,7 +21,7 @@ int main()
 	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 1);
 	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE - 3);
 
-	size_t in_use_tiny_chunk_size = (size_t)(getpagesize() / 128 | IN_USE);
+	size_t in_use_tiny_chunk_size = (size_t)(TINY_ZONE_MAX_CHUNK_SIZE | IN_USE);
 
 	size_t *chunk1_begin = (size_t *)((char *)ptr1 - SIZE_T_SIZE);
 	ASSERT_SIZE_EQ(*chunk1_begin, in_use_tiny_chunk_size);
