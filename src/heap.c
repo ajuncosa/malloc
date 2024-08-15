@@ -19,8 +19,8 @@ heap_t heap_g = { .tiny_zone_size = 0,
 
 bool init_heap(void)
 {
-    heap_g.tiny_zone_size = getpagesize();
-    heap_g.small_zone_size = getpagesize() * 800;
+    heap_g.tiny_zone_size = PAGE_SIZE;
+    heap_g.small_zone_size = PAGE_SIZE * 800;
     heap_g.tiny_zone_chunk_max_size = heap_g.tiny_zone_size / 128;
     heap_g.small_zone_chunk_max_size = heap_g.small_zone_size / 100;
     if (heap_g.tiny_zone_chunk_max_size < MIN_FREE_CHUNK_SIZE) // just in case

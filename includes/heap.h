@@ -15,6 +15,8 @@
 #define CHUNK_SIZE_WITHOUT_FLAGS(size)  (size & ~7u)
 //#define MAX_LARGE_CHUNKS			    65536 // maximum number of chunks to allocate with mmap (M_MMAP_MAX)
 
+#define PAGE_SIZE                       sysconf(_SC_PAGESIZE)
+
 typedef struct free_chunk_header_s
 {
     size_t size;

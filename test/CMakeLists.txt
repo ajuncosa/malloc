@@ -52,12 +52,13 @@ add_executable(rand_test
 target_link_libraries(rand_test PRIVATE ${LIBRARY_NAME})
 
 # tiny random tests
-create_random_test("test_rand_tiny_1" 100 0 0 112 30)
-create_random_test("test_rand_tiny_2" 200 0 0 112 50)
-create_random_test("test_rand_tiny_3" 400 0 0 112 70)
-create_random_test("test_rand_tiny_4" 800 0 0 112 100)
-create_random_test("test_rand_tiny_5" 1600 0 0 112 300)
-create_random_test("test_rand_tiny_6" 1600 300 0 112 300)
+create_random_test("test_rand_tiny_1" 50 0 0 112 20)
+create_random_test("test_rand_tiny_2" 100 50 0 112 30)
+create_random_test("test_rand_tiny_3" 200 100 0 112 50)
+create_random_test("test_rand_tiny_4" 400 200 0 112 70)
+create_random_test("test_rand_tiny_5" 800 500 0 112 100)
+create_random_test("test_rand_tiny_6" 1600 0 0 112 300)
+create_random_test("test_rand_tiny_7" 1600 300 0 112 300)
 create_random_test("test_rand_tiny_8" 2000 800 0 112 400)
 
 # small random tests
@@ -70,12 +71,22 @@ create_random_test("test_rand_small_6" 600 0 113 131056 200)
 create_random_test("test_rand_small_7" 600 100 113 131056 200)
 create_random_test("test_rand_small_8" 1000 300 113 131056 400)
 create_random_test("test_rand_small_9" 2000 800 113 131056 500)
-create_random_test("test_rand_small_10" 10000 0 113 131056 1000)
+create_random_test("test_rand_small_10" 10000 5000 113 131056 1000)
 
 # large random tests
 create_random_test("test_rand_large_1" 50 30 131057 1000000 30)
-create_random_test("test_rand_large_2" 1000 300 131057 1000000 300)
+create_random_test("test_rand_large_2" 100 50 131057 1000000 40)
+create_random_test("test_rand_large_3" 200 50 131057 1000000 50)
+create_random_test("test_rand_large_4" 200 50 131057 1000000 100)
+create_random_test("test_rand_large_5" 600 50 131057 1000000 100)
+create_random_test("test_rand_large_6" 600 50 131057 1000000 200)
+create_random_test("test_rand_large_7" 600 100 131057 1000000 200)
+create_random_test("test_rand_large_8" 1000 300 131057 1000000 400)
+create_random_test("test_rand_large_9" 2000 800 131057 1000000 500)
+create_random_test("test_rand_large_10" 10000 5000 131057 1000000 1000)
 
 # mixed random tests
-create_random_test("test_rand_mix_1" 1000 900 0 1000000 100)
-create_random_test("test_rand_mix_2" 10000 1000 0 2000000 800)
+create_random_test("test_rand_mix_1" 2000 900 0 1000 500)
+create_random_test("test_rand_mix_2" 2000 900 100 200000 500)
+create_random_test("test_rand_mix_3" 2000 900 0 1000000 500)
+create_random_test("test_rand_mix_4" 10000 1000 0 2000000 800)

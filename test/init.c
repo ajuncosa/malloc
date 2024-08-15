@@ -15,8 +15,8 @@ int main()
 	ASSERT_POINTER_EQ(heap_g.small_unsorted_list_head, NULL);
 
 	char *ptr = malloc(1);
-	ASSERT_SIZE_EQ(heap_g.tiny_zone_size % getpagesize(), 0);
-	ASSERT_SIZE_EQ(heap_g.small_zone_size % getpagesize(), 0);
+	ASSERT_SIZE_EQ(heap_g.tiny_zone_size % PAGE_SIZE, 0);
+	ASSERT_SIZE_EQ(heap_g.small_zone_size % PAGE_SIZE, 0);
 
 	free(ptr);
 }
