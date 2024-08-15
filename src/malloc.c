@@ -5,7 +5,6 @@
 #include "heap.h"
 #include "utils.h"
 
-// TODO: use getrlimit
 void *malloc(size_t size)
 {
 	if (size == 0)
