@@ -96,7 +96,8 @@ int main(int argc, char **argv) {
             print_endl();
 
             allocations[id] = realloc(allocations[id], size);
-
+            if (allocations[id] == NULL)
+                continue;
             if (size == 0) {
                 continue;
             }

@@ -75,8 +75,8 @@ void *realloc(void *ptr, size_t size)
 		return realloc_tiny_chunk(ptr, ptr_to_chunk, size, aligned_new_chunk_size);
 	/* SMALL REALLOC */
 	else if (CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) > heap_g.tiny_zone_chunk_max_size
-		&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= heap_g.small_zone_chunk_max_size)
-		return realloc_small_chunk(ptr, ptr_to_chunk, size, aligned_new_chunk_size);
+	 	&& CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) <= heap_g.small_zone_chunk_max_size)
+	 	return realloc_small_chunk(ptr, ptr_to_chunk, size, aligned_new_chunk_size);
 	
 	return NULL;
 }

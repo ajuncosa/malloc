@@ -12,7 +12,7 @@ heap_t heap_g = { .tiny_zone_size = 0,
                   .small_zone_chunk_max_size = 0,
                   .tiny_zones_head = NULL,
                   .small_zones_head = NULL,
-                  .large_zones_head = NULL ,
+                  .large_zones_head = NULL,
                   .tiny_bin_head = NULL,
                   .small_bin_head = NULL,
                   .small_unsorted_list_head = NULL };
@@ -309,7 +309,7 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
 	void *new_ptr = NULL;
     size_t old_chunk_data_size = CHUNK_SIZE_WITHOUT_FLAGS(*ptr_to_chunk) - SIZE_T_SIZE;
 	size_t copy_size = new_alloc_size < old_chunk_data_size ? new_alloc_size : old_chunk_data_size;
-	
+
     // The chunk resulting from the realloc will be "tiny" or "large"
     if (new_chunk_size <= heap_g.tiny_zone_chunk_max_size
         || new_chunk_size > heap_g.small_zone_chunk_max_size)
@@ -330,6 +330,12 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
         {
             coalesce_forward((size_t *)remaining_chunk);
             add_chunk_to_small_bin(remaining_chunk);
+
+            // Update flag
+            // zone_header_t *chunk_zone = get_zone(remaining_chunk, heap_g.small_zones_head, heap_g.small_zone_size);
+            // size_t *next_chunk = (size_t *)((uint8_t *)remaining_chunk + CHUNK_SIZE_WITHOUT_FLAGS(remaining_chunk->size));
+            // if (next_chunk != (size_t *)((uint8_t *)chunk_zone + heap_g.small_zone_size))
+            //     *next_chunk |= PREVIOUS_FREE;
         }
         return ptr_to_data;
     }
@@ -356,6 +362,12 @@ void *realloc_small_chunk(void *ptr_to_data, size_t *ptr_to_chunk, size_t new_al
             {
                 coalesce_forward((size_t *)remaining_chunk);
                 add_chunk_to_small_bin(remaining_chunk);
+
+                // Update flag
+                // zone_header_t *chunk_zone = get_zone(remaining_chunk, heap_g.small_zones_head, heap_g.small_zone_size);
+                // size_t *next_chunk = (size_t *)((uint8_t *)remaining_chunk + CHUNK_SIZE_WITHOUT_FLAGS(remaining_chunk->size));
+                // if (next_chunk != (size_t *)((uint8_t *)chunk_zone + heap_g.small_zone_size))
+                //     *next_chunk |= PREVIOUS_FREE;
             }
             return ptr_to_data;
         }

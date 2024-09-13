@@ -4,7 +4,7 @@ project(ft_malloc
     LANGUAGES C)
 
 set(CMAKE_C_FLAGS "-Wall -Werror -Wextra")
-set(CMAKE_C_FLAGS_DEBUG "-g3 -fsanitize=address")
+set(CMAKE_C_FLAGS_DEBUG "-g3")
 
 if(NOT DEFINED ENV{HOSTTYPE})
     execute_process(
