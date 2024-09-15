@@ -3,13 +3,13 @@
 
 #include "heap.h"
 
-#define ERROR_MSG_MAX_LEN	                1024
-#define RED					                "\x1B[31m"
-#define GREEN				                "\x1B[32m"
-#define YELLOW					            "\x1B[33m"
-#define BLUE					            "\x1B[34m"
-#define MAGENTA					            "\x1B[35m"
-#define NO_COLOR			                "\x1B[0m"
+#define ERROR_MSG_MAX_LEN                   1024
+#define RED                                 "\x1B[31m"
+#define GREEN                               "\x1B[32m"
+#define YELLOW                              "\x1B[33m"
+#define BLUE                                "\x1B[34m"
+#define MAGENTA                             "\x1B[35m"
+#define NO_COLOR                            "\x1B[0m"
 
 #define TINY_ZONE_SIZE                      PAGE_SIZE
 #define TINY_ZONE_MAX_CHUNK_SIZE            (TINY_ZONE_SIZE / 128)
@@ -19,11 +19,11 @@
 #define MIN_NUMBER_OF_SMALL_CHUNKS_PER_ZONE ((SMALL_ZONE_SIZE - ZONE_HEADER_T_SIZE) / SMALL_ZONE_MAX_CHUNK_SIZE)
 
 #define PRINT_FAIL_TEST_AT(file_name, line) {   \
-	print_str(RED "at ");                       \
+    print_str(RED "at ");                       \
     print_str(file_name);                       \
     print_str(":");                             \
     print_size(line);                           \
-	print_str(NO_COLOR); }
+    print_str(NO_COLOR); }
 
 #define ASSERT_CHAR_EQ(actual, expected) assert_char_eq(actual, expected, __FILE__, __LINE__)
 #define ASSERT_SIZE_EQ(actual, expected) assert_size_eq(actual, expected, __FILE__, __LINE__)

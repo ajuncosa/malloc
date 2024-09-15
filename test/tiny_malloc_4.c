@@ -4,47 +4,47 @@
  // NUMBER_OF_TINY_CHUNKS_PER_ZONE + 1 tiny mallocs
 int main()
 {
-	size_t in_use_tiny_chunk_size = (size_t)(TINY_ZONE_MAX_CHUNK_SIZE | IN_USE);
+    size_t in_use_tiny_chunk_size = (size_t)(TINY_ZONE_MAX_CHUNK_SIZE | IN_USE);
 
-	size_t *prev_chunk_begin = NULL;
-	char *ptr = NULL;
-	for (size_t i = 0; i < NUMBER_OF_TINY_CHUNKS_PER_ZONE; i++)
-	{
-		ptr = malloc(1);
-		ASSERT_POINTER_NE(ptr, NULL);
-		ASSERT_ALIGNMENT(ptr);
+    size_t *prev_chunk_begin = NULL;
+    char *ptr = NULL;
+    for (size_t i = 0; i < NUMBER_OF_TINY_CHUNKS_PER_ZONE; i++)
+    {
+        ptr = malloc(1);
+        ASSERT_POINTER_NE(ptr, NULL);
+        ASSERT_ALIGNMENT(ptr);
 
-		size_t *chunk_begin = (size_t *)((char *)ptr - SIZE_T_SIZE);
-		ASSERT_SIZE_EQ(*chunk_begin, in_use_tiny_chunk_size);
-		ASSERT_NO_CHUNK_OVERLAP(chunk_begin, prev_chunk_begin);
-		prev_chunk_begin = chunk_begin;
-	}
-	char *ptr_last = malloc(1); // extra one (in a separate zone)
-	ASSERT_POINTER_NE(ptr_last, NULL);
-	ASSERT_ALIGNMENT(ptr_last);
+        size_t *chunk_begin = (size_t *)((char *)ptr - SIZE_T_SIZE);
+        ASSERT_SIZE_EQ(*chunk_begin, in_use_tiny_chunk_size);
+        ASSERT_NO_CHUNK_OVERLAP(chunk_begin, prev_chunk_begin);
+        prev_chunk_begin = chunk_begin;
+    }
+    char *ptr_last = malloc(1); // extra one (in a separate zone)
+    ASSERT_POINTER_NE(ptr_last, NULL);
+    ASSERT_ALIGNMENT(ptr_last);
 
-	size_t *chunk_begin = (size_t *)((char *)ptr_last - SIZE_T_SIZE);
-	ASSERT_SIZE_EQ(*chunk_begin, in_use_tiny_chunk_size);
-	ASSERT_NO_CHUNK_OVERLAP(chunk_begin, prev_chunk_begin);
+    size_t *chunk_begin = (size_t *)((char *)ptr_last - SIZE_T_SIZE);
+    ASSERT_SIZE_EQ(*chunk_begin, in_use_tiny_chunk_size);
+    ASSERT_NO_CHUNK_OVERLAP(chunk_begin, prev_chunk_begin);
 
-	ASSERT_POINTER_NE(heap_g.tiny_zones_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.small_zones_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.large_zones_head, NULL);
-	ASSERT_POINTER_NE(heap_g.tiny_bin_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.small_bin_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.small_unsorted_list_head, NULL);
+    ASSERT_POINTER_NE(heap_g.tiny_zones_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.small_zones_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.large_zones_head, NULL);
+    ASSERT_POINTER_NE(heap_g.tiny_bin_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.small_bin_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.small_unsorted_list_head, NULL);
 
-	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 2);
-	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), (NUMBER_OF_TINY_CHUNKS_PER_ZONE * 2) - (NUMBER_OF_TINY_CHUNKS_PER_ZONE + 1));
+    ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 2);
+    ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), (NUMBER_OF_TINY_CHUNKS_PER_ZONE * 2) - (NUMBER_OF_TINY_CHUNKS_PER_ZONE + 1));
 
-	for (size_t i = 0; i < NUMBER_OF_TINY_CHUNKS_PER_ZONE; i++)
-	{
-		free(ptr);
-		ptr -= heap_g.tiny_zone_chunk_max_size;
-	}
+    for (size_t i = 0; i < NUMBER_OF_TINY_CHUNKS_PER_ZONE; i++)
+    {
+        free(ptr);
+        ptr -= heap_g.tiny_zone_chunk_max_size;
+    }
 
-	free(ptr_last);
+    free(ptr_last);
 
-	ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 1);
-	ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE);
+    ASSERT_SIZE_EQ(zone_list_len(heap_g.tiny_zones_head), 1);
+    ASSERT_SIZE_EQ(free_chunk_list_len(heap_g.tiny_bin_head), NUMBER_OF_TINY_CHUNKS_PER_ZONE);
 }

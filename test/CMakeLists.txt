@@ -51,7 +51,7 @@ add_executable(rand_test
     ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.c)
 target_link_libraries(rand_test PRIVATE ${LIBRARY_NAME})
 
-set(MAX_TINY_CHUNK_SIZE 15)
+set(MAX_TINY_CHUNK_SIZE 16)
 set(MIN_SMALL_CHUNK_SIZE 17)
 set(MAX_SMALL_CHUNK_SIZE 32752)
 set(MIN_LARGE_CHUNK_SIZE 32753)

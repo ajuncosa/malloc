@@ -1,9 +1,9 @@
 from subprocess import Popen, PIPE
 import os
 
-rand_generator_path = "/home/ajuncosa/Desktop/malloc/test/random_tester/rand-generator.py"
-instructions_output_file = "/home/ajuncosa/Desktop/malloc/build/test"
-rand_test_executable_path = "/home/ajuncosa/Desktop/malloc/build/bin/rand_test"
+rand_generator_path = "/Users/anajuncosa/Desktop/malloc/test/random_tester/rand-generator.py"
+instructions_output_file = "/Users/anajuncosa/Desktop/malloc/build/test"
+rand_test_executable_path = "/Users/anajuncosa/Desktop/malloc/build/bin/rand_test"
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 

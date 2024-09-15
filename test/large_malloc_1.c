@@ -4,20 +4,20 @@
  // malloc(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1)
 int main()
 {
-	char *ptr = malloc(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1);
-	ASSERT_POINTER_NE(ptr, NULL);
-	ASSERT_ALIGNMENT(ptr);
+    char *ptr = malloc(SMALL_ZONE_MAX_CHUNK_SIZE - SIZE_T_SIZE + 1);
+    ASSERT_POINTER_NE(ptr, NULL);
+    ASSERT_ALIGNMENT(ptr);
 
-	ASSERT_POINTER_EQ(heap_g.tiny_zones_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.small_zones_head, NULL);
-	ASSERT_POINTER_NE(heap_g.large_zones_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.tiny_bin_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.small_bin_head, NULL);
-	ASSERT_POINTER_EQ(heap_g.small_unsorted_list_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.tiny_zones_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.small_zones_head, NULL);
+    ASSERT_POINTER_NE(heap_g.large_zones_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.tiny_bin_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.small_bin_head, NULL);
+    ASSERT_POINTER_EQ(heap_g.small_unsorted_list_head, NULL);
 
-	ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 1);
+    ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 1);
 
-	free(ptr);
+    free(ptr);
 
-	ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 0);
+    ASSERT_SIZE_EQ(zone_list_len(heap_g.large_zones_head), 0);
 }
