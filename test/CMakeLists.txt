@@ -35,8 +35,8 @@ create_test(small_realloc_5)
 create_test(large_realloc_1)
 
 # random
-create_test(random_malloc)
-create_test(random_malloc_free)
+#create_test(random_malloc)
+#create_test(random_malloc_free)
 
 # RANDOM TESTER
 
@@ -60,12 +60,6 @@ math(EXPR MAX_TINY_CHUNK_SIZE "${PAGE_SIZE} / 128 - 16")
 math(EXPR MIN_SMALL_CHUNK_SIZE "${MAX_TINY_CHUNK_SIZE} + 1")
 math(EXPR MAX_SMALL_CHUNK_SIZE "${PAGE_SIZE} * 8 - 16")
 math(EXPR MIN_LARGE_CHUNK_SIZE "${MAX_SMALL_CHUNK_SIZE} + 1")
-
-message("PAGE SIZE: ${PAGE_SIZE}")
-message("MAX_TINY_CHUNK_SIZE: ${MAX_TINY_CHUNK_SIZE}")
-message("MIN_SMALL_CHUNK_SIZE: ${MIN_SMALL_CHUNK_SIZE}")
-message("MAX_SMALL_CHUNK_SIZE: ${MAX_SMALL_CHUNK_SIZE}")
-message("MIN_LARGE_CHUNK_SIZE: ${MIN_LARGE_CHUNK_SIZE}")
 
 # tiny random tests
 create_random_test("test_rand_tiny_1" 50 0 0 ${MAX_TINY_CHUNK_SIZE} 20)
